@@ -141,15 +141,14 @@ public class TCPSocketServerContainer extends AbstractRSAContainer {
 					else {
 						String methodName = (String) ois.readObject();
 						Object[] args = (Object[]) ois.readObject();
+						Object service = reg.getService();
 						try {
-							Object service = reg.getService();
 							// Find appropriate method on service
 							final Method method = ClassUtil.getMethod(service.getClass(), methodName,
 									RSARemoteServiceRegistration.getTypesForParameters(args));
 							// Actually invoke method on service object
 							result = method.invoke(service, args);
 							if (result != null) {
-								// Get timeout for this service if set
 								Class<?> returnType = method.getReturnType();
 								// provider must expose osgi.async property and must be async return type
 								if (AsyncUtil.isOSGIAsync(reg.getReference())
