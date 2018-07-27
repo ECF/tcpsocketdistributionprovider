@@ -135,27 +135,36 @@ public class TCPSocketServerContainer extends AbstractRSAContainer {
 			connected = true;
 			while (connected) {
 				try {
+					// Read long rsvcid
 					long rsvcid = ois.readLong();
+					// If it's < 0 then that's a disconnect
 					if (rsvcid < 0) {
 						// disconnect
 						close();
 						return;
 					}
 					Object result = null;
+					// Otherwise it should be a rsvcid, so use to look up registered
+					// services
 					RSARemoteServiceRegistration reg = registrations.get(rsvcid);
+					// If not found we throw, disconnect
 					if (reg == null)
 						result = new IOException("Service object id=" + rsvcid + " not found");
 					else {
+						// Read method name
 						String methodName = (String) ois.readObject();
+						// Read array of object for arguments to remote call
 						Object[] args = (Object[]) ois.readObject();
+						// Get service from registration
 						Object service = reg.getService();
 						try {
-							// Find appropriate method on service
+							// Find appropriate method
 							final Method method = ClassUtil.getMethod(service.getClass(), methodName,
 									RSARemoteServiceRegistration.getTypesForParameters(args));
-							// Actually invoke method on service object
+							// Synchronously invoke method on service object
 							result = method.invoke(service, args);
 							if (result != null) {
+								// get return type
 								Class<?> returnType = method.getReturnType();
 								// provider must expose osgi.async property and must be async return type
 								if (AsyncUtil.isOSGIAsync(reg.getReference())
