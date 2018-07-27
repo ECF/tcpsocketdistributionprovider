@@ -44,9 +44,7 @@ public class TCPSocketClientService extends AbstractRSAClientService {
 	Object invokeRemote(String methodName, Object[] args) throws Exception {
 		long rsvcid = (Long) getRegistration().getProperty(org.eclipse.ecf.remoteservice.Constants.SERVICE_ID);
 		oos.writeLong(rsvcid);
-		oos.flush();
 		oos.writeObject(methodName);
-		oos.flush();
 		oos.writeObject(args);
 		oos.flush();
 		return ois.readObject();

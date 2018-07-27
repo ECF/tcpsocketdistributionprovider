@@ -130,7 +130,7 @@ public class TCPSocketServerContainer extends AbstractRSAContainer {
 				try {
 					long rsvcid = ois.readLong();
 					if (rsvcid < 0) {
-						// ContainerClient disconnecting
+						// disconnect
 						close();
 						return;
 					}
