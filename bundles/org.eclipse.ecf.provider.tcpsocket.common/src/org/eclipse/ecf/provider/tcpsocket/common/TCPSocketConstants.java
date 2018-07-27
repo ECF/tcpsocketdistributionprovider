@@ -13,5 +13,11 @@ public interface TCPSocketConstants {
 	String NAMESPACE_NAME = "ecf.namespace.socket";
 	String SERVER_PROVIDER_CONFIG_TYPE = "ecf.socket.server";
 	String CLIENT_PROVIDER_CONFIG_TYPE = "ecf.socket.client";
-
+	String HOSTNAME_PROP = "hostname";
+	String HOSTNAME_DEFAULT = "localhost";
+	String PORT_PROP = "port";
+	int PORT_PROP_DEFAULT = 3000;
+	String BIND_ADDRESS_PROP = "bindAddress";
+	String BACKLOG_PROP = "backlog";
+	int BACKLOG_DEFAULT = 50;
 }

@@ -14,8 +14,10 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -45,7 +47,7 @@ public class TCPSocketServerContainer extends AbstractRSAContainer {
 
 		private boolean listening;
 
-		public ContainerServerSocket(int port) throws IOException {
+		public ContainerServerSocket(int port, int backlog, InetAddress bindAddress) throws IOException {
 			super(port);
 			listening = true;
 			new Thread(this, "ContainerServerSocket listener").start();
@@ -70,10 +72,10 @@ public class TCPSocketServerContainer extends AbstractRSAContainer {
 
 	private ContainerServerSocket serverSocket;
 
-	public TCPSocketServerContainer(int port) throws ContainerCreateException {
-		super(TCPSocketNamespace.createID());
+	public TCPSocketServerContainer(URI uri, int backlog, InetAddress bindAddress) throws ContainerCreateException {
+		super(TCPSocketNamespace.createServerID(uri));
 		try {
-			this.serverSocket = new ContainerServerSocket(port);
+			this.serverSocket = new ContainerServerSocket(uri.getPort(), backlog, bindAddress);
 		} catch (IOException e) {
 			throw new ContainerCreateException("Could not open container server socket for tcpsocket server", e);
 		}

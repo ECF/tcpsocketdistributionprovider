@@ -8,6 +8,10 @@
  ******************************************************************************/
 package org.eclipse.ecf.provider.tcpsocket.server;
 
+import java.net.InetAddress;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.UnknownHostException;
 import java.util.Map;
 
 import org.eclipse.ecf.core.ContainerCreateException;
@@ -48,8 +52,38 @@ public class Activator implements BundleActivator {
 									@Override
 									public IContainer createInstance(ContainerTypeDescription description,
 											Map<String, ?> parameters) throws ContainerCreateException {
-										checkAsyncIntent(description, parameters);
-										return new TCPSocketServerContainer(3000);
+										int port = getParameterValue(parameters, TCPSocketConstants.PORT_PROP,
+												Integer.class, TCPSocketConstants.PORT_PROP_DEFAULT);
+										String hostname = getParameterValue(parameters,
+												TCPSocketConstants.HOSTNAME_PROP, TCPSocketConstants.HOSTNAME_DEFAULT);
+										URI uri = null;
+										try {
+											uri = new URI("tcp://" + hostname + ":" + String.valueOf(port));
+										} catch (URISyntaxException e) {
+											throw new ContainerCreateException("Could not create uri.  hostname="
+													+ hostname + ",port=" + String.valueOf(port), e);
+										}
+										checkOSGIIntents(description, uri, parameters);
+										String bindAddressStr = getParameterValue(parameters,
+												TCPSocketConstants.BIND_ADDRESS_PROP, null);
+										InetAddress bindAddress = null;
+										if (bindAddressStr != null)
+											try {
+												bindAddress = InetAddress.getByName(bindAddressStr);
+											} catch (UnknownHostException e) {
+												throw new ContainerCreateException(
+														"Could not create bindAddress from bindAddressStr="
+																+ bindAddressStr,
+														e);
+											}
+										int backlog = getParameterValue(parameters, TCPSocketConstants.BACKLOG_PROP,
+												Integer.class, TCPSocketConstants.BACKLOG_DEFAULT);
+										return new TCPSocketServerContainer(uri, backlog, bindAddress);
+									}
+
+									@Override
+									protected boolean supportsOSGIPrivateIntent(ContainerTypeDescription description) {
+										return true;
 									}
 
 									@Override

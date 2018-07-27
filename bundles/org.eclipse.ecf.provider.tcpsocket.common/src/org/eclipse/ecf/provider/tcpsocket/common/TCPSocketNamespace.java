@@ -8,6 +8,7 @@
  ******************************************************************************/
 package org.eclipse.ecf.provider.tcpsocket.common;
 
+import java.net.URI;
 import java.util.UUID;
 
 import org.eclipse.ecf.core.identity.ID;
@@ -31,7 +32,11 @@ public class TCPSocketNamespace extends URIIDNamespace {
 		return "tcp";
 	}
 
-	public static ID createID() {
+	public static ID createServerID(URI uri) {
+		return getInstance().createInstance(new Object[] { uri });
+	}
+	
+	public static ID createClientID() {
 		return getInstance().createInstance(new Object[] { "uuid:" + UUID.randomUUID().toString() });
 	}
 }
