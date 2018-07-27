@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 import org.eclipse.ecf.core.ContainerCreateException;
@@ -46,11 +47,12 @@ public class TCPSocketServerContainer extends AbstractRSAContainer {
 	class ContainerServerSocket extends ServerSocket implements Runnable, Closeable {
 
 		private boolean listening;
-
+		private Future<?> future;
+		
 		public ContainerServerSocket(int port, int backlog, InetAddress bindAddress) throws IOException {
 			super(port);
 			listening = true;
-			new Thread(this, "ContainerServerSocket listener").start();
+			future = executor.submit(this);
 		}
 
 		@Override
@@ -59,6 +61,8 @@ public class TCPSocketServerContainer extends AbstractRSAContainer {
 				try {
 					containerClients.add(new ContainerClient(this.accept()));
 				} catch (IOException e) {
+					e.printStackTrace();
+					System.out.println("Exception in TCPSocketServer ilstener...exiting");
 					listening = false;
 				}
 			}
@@ -66,6 +70,7 @@ public class TCPSocketServerContainer extends AbstractRSAContainer {
 
 		public void close() throws IOException {
 			listening = false;
+			future.cancel(true);
 			super.close();
 		}
 	}
@@ -163,7 +168,7 @@ public class TCPSocketServerContainer extends AbstractRSAContainer {
 								e = ((InvocationTargetException) e).getTargetException();
 							result = e;
 						}
-						// Write result object
+						// Write result object or Throwable
 						oos.writeObject(result);
 						oos.flush();
 					}
@@ -195,16 +200,14 @@ public class TCPSocketServerContainer extends AbstractRSAContainer {
 		if (this.serverSocket != null) {
 			try {
 				this.serverSocket.close();
-			} catch (IOException e) {
-			}
+			} catch (IOException e) {}
 			this.serverSocket = null;
 		}
 		if (this.executor != null) {
 			this.executor.shutdown();
 			try {
-				this.executor.awaitTermination(30, TimeUnit.SECONDS);
-			} catch (InterruptedException e) {
-			}
+				this.executor.awaitTermination(20, TimeUnit.SECONDS);
+			} catch (InterruptedException e) {}
 			this.executor.shutdownNow();
 			this.executor = null;
 		}
