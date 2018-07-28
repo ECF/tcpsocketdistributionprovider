@@ -220,5 +220,6 @@ public class TCPSocketServerContainer extends AbstractRSAContainer {
 			this.executor.shutdownNow();
 			this.executor = null;
 		}
+		super.dispose();
 	}
 }
