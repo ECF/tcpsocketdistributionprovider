@@ -42,29 +42,33 @@ public class TCPSocketClientContainer extends AbstractRSAClientContainer {
 
 	@Override
 	public void connect(ID targetID, IConnectContext connectContext1) throws ContainerConnectException {
-		fireContainerEvent(new ContainerConnectingEvent(containerID, targetID));
 		synchronized (connectLock) {
-			if (connectedID != null)
-				throw new ContainerConnectException("Already connected to " + connectedID.getName());
-			try {
-				URI uri = ((URIID) targetID).toURI();
-				// open socket with given host and port
-				this.clientSocket = new Socket(uri.getHost(), uri.getPort());
-				// create object output stream
-				this.oos = new OSGIObjectOutputStream(clientSocket.getOutputStream());
-				// writeLong(0) to connect
-				this.oos.writeLong(0);
-				this.oos.flush();
-				// open object input stream for return values
-				this.ois = new OSGIObjectInputStream(Activator.getContext().getBundle(), clientSocket.getInputStream());
-			} catch (Exception e) {
-				this.clientSocket = null;
-				throw new ContainerConnectException("Cannot connect to targetID=" + targetID.getName(), e);
+			if (connectedID == null) {
+				fireContainerEvent(new ContainerConnectingEvent(containerID, targetID));
+				try {
+					URI uri = ((URIID) targetID).toURI();
+					// open socket with given host and port
+					this.clientSocket = new Socket(uri.getHost(), uri.getPort());
+					// create object output stream
+					this.oos = new OSGIObjectOutputStream(clientSocket.getOutputStream());
+					// writeLong(0) to connect
+					this.oos.writeLong(0);
+					this.oos.flush();
+					// open object input stream for return values
+					this.ois = new OSGIObjectInputStream(Activator.getContext().getBundle(),
+							clientSocket.getInputStream());
+				} catch (Exception e) {
+					this.clientSocket = null;
+					throw new ContainerConnectException("Cannot connect to targetID=" + targetID.getName(), e);
+				}
+				connectedID = targetID;
+				this.connectContext = connectContext1;
+				fireContainerEvent(new ContainerConnectedEvent(containerID, targetID));
+			} else if (!connectedID.equals(targetID)) {
+				throw new ContainerConnectException(
+						"Container already connected to targetID=" + this.connectedID.getName());
 			}
-			connectedID = targetID;
-			this.connectContext = connectContext1;
 		}
-		fireContainerEvent(new ContainerConnectedEvent(containerID, targetID));
 	}
 
 	@Override
@@ -82,7 +86,8 @@ public class TCPSocketClientContainer extends AbstractRSAClientContainer {
 
 			Object invokeRemote(String methodName, Object[] args) throws Exception {
 				synchronized (ois) {
-					long rsvcid = (Long) getRegistration().getProperty(org.eclipse.ecf.remoteservice.Constants.SERVICE_ID);
+					long rsvcid = (Long) getRegistration()
+							.getProperty(org.eclipse.ecf.remoteservice.Constants.SERVICE_ID);
 					oos.writeLong(rsvcid);
 					oos.writeObject(methodName);
 					oos.writeObject(args);
