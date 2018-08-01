@@ -19,6 +19,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -61,8 +62,6 @@ public class TCPSocketServerContainer extends AbstractRSAContainer {
 				try {
 					containerClients.add(new ContainerClient(this.accept()));
 				} catch (IOException e) {
-					e.printStackTrace();
-					System.out.println("Exception in TCPSocketServer ilstener...exiting");
 					listening = false;
 				}
 			}

@@ -85,7 +85,7 @@ public class TCPSocketClientContainer extends AbstractRSAClientContainer {
 			}
 
 			Object invokeRemote(String methodName, Object[] args) throws Exception {
-				synchronized (ois) {
+				synchronized (clientSocket) {
 					long rsvcid = (Long) getRegistration()
 							.getProperty(org.eclipse.ecf.remoteservice.Constants.SERVICE_ID);
 					oos.writeLong(rsvcid);
