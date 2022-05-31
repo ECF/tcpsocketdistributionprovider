@@ -161,12 +161,9 @@ public class TCPSocketServerContainer extends AbstractRSAContainer {
 							result = new IOException("ecf.rsvc.id=0 and ecf.endpoint.rsfilter="+ rsFilter + " has bad syntax",e);
 						}
 						synchronized (registrations) {
-							for(RSARemoteServiceRegistration r: registrations.values()) {
-								if (r instanceof TCPRemoteServiceContainerAdapter.TCPRemoteServiceRegistration) {
-									TCPRemoteServiceContainerAdapter.TCPRemoteServiceRegistration tcpReg = (TCPRemoteServiceContainerAdapter.TCPRemoteServiceRegistration) r;
-									if (filter.match(tcpReg.getProperties())) {
-										reg = r;
-									}
+							for(TCPRemoteServiceContainerAdapter.TCPRemoteServiceRegistration r: registrations.values()) {
+								if (filter.match(r.getProperties())) {
+									reg = r;
 								}
 							}
 						}
@@ -242,12 +239,12 @@ public class TCPSocketServerContainer extends AbstractRSAContainer {
 
 	private List<ContainerClient> containerClients = Collections.synchronizedList(new ArrayList<ContainerClient>());
 
-	private Map<Long, RSARemoteServiceRegistration> registrations = Collections
-			.synchronizedMap(new HashMap<Long, RSARemoteServiceRegistration>());
+	private Map<Long, TCPRemoteServiceContainerAdapter.TCPRemoteServiceRegistration> registrations = Collections
+			.synchronizedMap(new HashMap<Long, TCPRemoteServiceContainerAdapter.TCPRemoteServiceRegistration>());
 
 	@Override
 	protected Map<String, Object> exportRemoteService(RSARemoteServiceRegistration registration) {
-		registrations.put(registration.getServiceId(), registration);
+		registrations.put(registration.getServiceId(), (TCPRemoteServiceContainerAdapter.TCPRemoteServiceRegistration) registration);
 		return null;
 	}
 
