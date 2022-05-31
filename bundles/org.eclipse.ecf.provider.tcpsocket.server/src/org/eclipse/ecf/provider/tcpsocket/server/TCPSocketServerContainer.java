@@ -68,7 +68,9 @@ public class TCPSocketServerContainer extends AbstractRSAContainer {
 
 		public void close() throws IOException {
 			listening = false;
-			future.cancel(true);
+			if (future != null) {
+				future.cancel(true);
+			}
 			super.close();
 		}
 	}

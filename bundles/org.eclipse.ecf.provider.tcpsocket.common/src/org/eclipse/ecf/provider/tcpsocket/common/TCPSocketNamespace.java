@@ -39,4 +39,14 @@ public class TCPSocketNamespace extends URIIDNamespace {
 	public static ID createClientID() {
 		return getInstance().createInstance(new Object[] { "uuid:" + UUID.randomUUID().toString() });
 	}
+	
+	protected String getInitStringFromExternalForm(Object[] args) {
+		if (args == null || args.length < 1 || args[0] == null)
+			return null;
+		if (args[0] instanceof String) {
+			return (String) args[0];
+		}
+		return null;
+	}
+
 }
