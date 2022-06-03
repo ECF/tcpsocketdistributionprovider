@@ -21,7 +21,6 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Dictionary;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -37,13 +36,13 @@ import org.eclipse.ecf.provider.tcpsocket.common.TCPSocketNamespace;
 import org.eclipse.ecf.remoteservice.AbstractRSAContainer;
 import org.eclipse.ecf.remoteservice.Constants;
 import org.eclipse.ecf.remoteservice.IRemoteCall;
+import org.eclipse.ecf.remoteservice.IRemoteServiceReference;
 import org.eclipse.ecf.remoteservice.RSARemoteServiceContainerAdapter;
-import org.eclipse.ecf.remoteservice.RemoteServiceRegistrationImpl;
 import org.eclipse.ecf.remoteservice.RSARemoteServiceContainerAdapter.RSARemoteServiceRegistration;
+import org.eclipse.ecf.remoteservice.RemoteServiceRegistrationImpl;
+import org.eclipse.ecf.remoteservice.RemoteServiceRegistryImpl;
 import org.eclipse.ecf.remoteservice.asyncproxy.AsyncReturnUtil;
 import org.eclipse.ecf.remoteservice.util.AsyncUtil;
-import org.osgi.framework.Filter;
-import org.osgi.framework.InvalidSyntaxException;
 
 public class TCPSocketServerContainer extends AbstractRSAContainer {
 
@@ -64,7 +63,7 @@ public class TCPSocketServerContainer extends AbstractRSAContainer {
 		public void run() {
 			while (listening) {
 				try {
-					containerClients.add(new ContainerClient(this.accept()));
+					containerClients.add(new Client(this.accept()));
 				} catch (IOException e) {
 					listening = false;
 				}
@@ -91,21 +90,21 @@ public class TCPSocketServerContainer extends AbstractRSAContainer {
 		}
 	}
 
-	class ContainerClient implements Runnable {
+	class Client implements Runnable {
 
 		private Socket s;
 		private boolean connected;
 		private ObjectInputStream ois;
 		private ObjectOutputStream oos;
 
-		public ContainerClient(Socket s) {
+		public Client(Socket s) {
 			this.s = s;
 			executor.submit(this);
 		}
 
 		void close() {
 			connected = false;
-			containerClients.remove(ContainerClient.this);
+			containerClients.remove(Client.this);
 			try {
 				s.close();
 			} catch (IOException e1) {
@@ -138,41 +137,16 @@ public class TCPSocketServerContainer extends AbstractRSAContainer {
 				return;
 			}
 			connected = true;
+			
 			while (connected) {
 				Object result = null;
 				try {
 					// Read long rsvcid
 					long rsvcid = ois.readLong();
-					String rsFilter = ois.readUTF();
-					RSARemoteServiceRegistration reg = null;
-					// If it's < 0 then that's an error
-					if (rsvcid < 0) {
-						result = new IOException("ecf.rsvc.id must be >= 0");
-					} else if (rsvcid == 0) {
-						// if rsvcid is == 0 then we look at rsFilter
-						if (rsFilter == null) {
-							// If rsFilter is null then we've got nothing to go by and it's an error
-							result = new IOException("If ecf.rsvc.id is 0, then ecf.endpoint.rsfilter must note be null, and set to a filter capable of matching the target remote service properties");
-						}
-						Filter filter = null;
-						try {
-							filter = Activator.getContext().createFilter(rsFilter);
-						} catch (InvalidSyntaxException e) {
-							result = new IOException("ecf.rsvc.id=0 and ecf.endpoint.rsfilter="+ rsFilter + " has bad syntax",e);
-						}
-						synchronized (registrations) {
-							for(TCPRemoteServiceContainerAdapter.TCPRemoteServiceRegistration r: registrations.values()) {
-								if (filter.match(r.getProperties())) {
-									reg = r;
-								}
-							}
-						}
-					} else {
-						reg = registrations.get(rsvcid);
-					}
+					org.eclipse.ecf.provider.tcpsocket.server.TCPSocketServerContainer.TCPRemoteServiceContainerAdapter.TCPRemoteServiceRegistration reg = TCPSocketServerContainer.this.containerAdapter.findRegistration(rsvcid);
 					// We should have a registration by here, but if not then return error result
 					if (reg == null)
-						result = new IOException("Service object with ecf.rsvc.id=" + rsvcid + " and ecf.endpoint.rsfilter=" + rsFilter +" not found");
+						result = new IOException("Service object with ecf.rsvc.id=" + rsvcid + " not found");
 					if (result == null) {
 						// Read method name
 						String methodName = (String) ois.readObject();
@@ -200,7 +174,6 @@ public class TCPSocketServerContainer extends AbstractRSAContainer {
 								e = ((InvocationTargetException) e).getTargetException();
 							result = e;
 						}
-
 					}
 					// Write result object or Throwable
 					oos.writeObject(result);
@@ -217,6 +190,12 @@ public class TCPSocketServerContainer extends AbstractRSAContainer {
 		public TCPRemoteServiceContainerAdapter(AbstractRSAContainer container) {
 			super(container);
 		}
+
+		TCPRemoteServiceRegistration findRegistration(long rsId) {
+			IRemoteServiceReference ref = getRemoteServiceReference(getRemoteServiceID(getLocalContainerID(), rsId));
+			return (ref != null)?(TCPRemoteServiceRegistration) getRemoteServiceRegistrationImpl(ref):null;
+		}
+		
 		@Override
 		protected RemoteServiceRegistrationImpl createRegistration() {
 			return new TCPRemoteServiceRegistration();
@@ -229,28 +208,50 @@ public class TCPSocketServerContainer extends AbstractRSAContainer {
 			Dictionary<String,?> getProperties() {
 				return properties;
 			}
+			Long convertPropValueToLong(Dictionary<?, ?> props) {
+				Object val = props.get("ecf.socket.server.remoteserviceid");
+				if (val == null) return null;
+				if (val instanceof Long) return (Long) val;
+				if (val instanceof String) {
+					try {
+						return Long.valueOf((String) val);
+					} catch (Exception e) {}
+				}
+				return null;
+			}
+			
+			@Override
+			public void publish(RemoteServiceRegistryImpl registry, Object svc, String[] clzzes, @SuppressWarnings("rawtypes") Dictionary props) {
+				synchronized (registry) {
+					super.publish(registry, svc, clzzes, props);
+					Long rsId = convertPropValueToLong(props);
+					if (rsId != null && rsId > 0) {
+						registry.unpublishService(this);
+						this.remoteServiceID = registry.createRemoteServiceID(rsId);
+						this.properties = createProperties(props);
+						registry.publishService(this);
+					}
+				}
+			}
 		}
-		
-		
 	}
+	
+	protected TCPRemoteServiceContainerAdapter containerAdapter;
+	
 	protected RSARemoteServiceContainerAdapter createContainerAdapter() {
-		return new TCPRemoteServiceContainerAdapter(this);
+		this.containerAdapter = new TCPRemoteServiceContainerAdapter(this);
+		return this.containerAdapter;
 	}
 
-	private List<ContainerClient> containerClients = Collections.synchronizedList(new ArrayList<ContainerClient>());
-
-	private Map<Long, TCPRemoteServiceContainerAdapter.TCPRemoteServiceRegistration> registrations = Collections
-			.synchronizedMap(new HashMap<Long, TCPRemoteServiceContainerAdapter.TCPRemoteServiceRegistration>());
+	private List<Client> containerClients = Collections.synchronizedList(new ArrayList<Client>());
 
 	@Override
 	protected Map<String, Object> exportRemoteService(RSARemoteServiceRegistration registration) {
-		registrations.put(registration.getServiceId(), (TCPRemoteServiceContainerAdapter.TCPRemoteServiceRegistration) registration);
 		return null;
 	}
 
 	@Override
 	protected void unexportRemoteService(RSARemoteServiceRegistration registration) {
-		registrations.remove(registration.getServiceId());
 	}
 
 	@Override

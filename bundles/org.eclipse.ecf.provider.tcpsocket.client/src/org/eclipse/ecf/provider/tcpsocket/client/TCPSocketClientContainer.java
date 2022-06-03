@@ -13,6 +13,10 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.net.URI;
+import java.util.Dictionary;
+import java.util.Enumeration;
+import java.util.Map;
+import java.util.Properties;
 import java.util.concurrent.Callable;
 
 import org.eclipse.ecf.core.ContainerConnectException;
@@ -25,8 +29,10 @@ import org.eclipse.ecf.core.util.OSGIObjectInputStream;
 import org.eclipse.ecf.core.util.OSGIObjectOutputStream;
 import org.eclipse.ecf.provider.tcpsocket.common.TCPSocketNamespace;
 import org.eclipse.ecf.remoteservice.IRemoteService;
+import org.eclipse.ecf.remoteservice.RemoteServiceID;
 import org.eclipse.ecf.remoteservice.client.AbstractRSAClientContainer;
 import org.eclipse.ecf.remoteservice.client.AbstractRSAClientService;
+import org.eclipse.ecf.remoteservice.client.IRemoteCallable;
 import org.eclipse.ecf.remoteservice.client.RemoteServiceClientRegistration;
 import org.eclipse.ecf.remoteservice.events.IRemoteCallCompleteEvent;
 
@@ -39,6 +45,56 @@ public class TCPSocketClientContainer extends AbstractRSAClientContainer {
 	private Socket clientSocket;
 	private ObjectOutputStream oos;
 	private ObjectInputStream ois;
+
+	class TCPClientRegistration extends RSAClientRegistration {
+
+		Long convertPropValueToLong(Dictionary<?, ?> props) {
+			Object val = props.get("ecf.socket.server.remoteserviceid");
+			if (val == null)
+				return null;
+			if (val instanceof Long)
+				return (Long) val;
+			if (val instanceof String) {
+				try {
+					return Long.valueOf((String) val);
+				} catch (Exception e) {
+				}
+			}
+			return null;
+		}
+
+		@SuppressWarnings({ "unchecked", "rawtypes" })
+		Dictionary createDictionary(Dictionary original, long rsId) {
+			Dictionary result = new Properties();
+			for (Enumeration<?> e = original.keys(); e.hasMoreElements();) {
+				String key = (String) e.nextElement();
+				if (key.equals("ecf.rsvc.id")) {
+					result.put(key, rsId);
+				} else {
+					result.put(key, original.get(key));
+				}
+			}
+			return result;
+		}
+
+		public TCPClientRegistration(ID targetID, String[] classNames, IRemoteCallable[][] restCalls,
+				@SuppressWarnings("rawtypes") Dictionary properties) {
+			super(targetID, classNames, restCalls, properties);
+			Long rsId = convertPropValueToLong(properties);
+			if (rsId != null && rsId > 0) {
+				this.serviceID = new RemoteServiceID(getConnectNamespace(), this.containerId, rsId);
+				this.properties = createDictionary(properties, rsId);
+			}
+		}
+
+	}
+
+	protected RemoteServiceClientRegistration createRSAClientRegistration(ID targetID, String[] interfaces,
+			Map<String, Object> endpointDescriptionProperties) {
+		@SuppressWarnings("rawtypes")
+		Dictionary d = createRegistrationProperties(endpointDescriptionProperties);
+		return new TCPClientRegistration(targetID, interfaces, createRegistrationCallables(targetID, interfaces, d), d);
+	}
 
 	@Override
 	public void connect(ID targetID, IConnectContext connectContext1) throws ContainerConnectException {
@@ -86,12 +142,8 @@ public class TCPSocketClientContainer extends AbstractRSAClientContainer {
 
 			Object invokeRemote(String methodName, Object[] args) throws Exception {
 				synchronized (clientSocket) {
-					RemoteServiceClientRegistration reg = getRegistration();
-					long rsvcid = (Long) reg
-							.getProperty(org.eclipse.ecf.remoteservice.Constants.SERVICE_ID);
-					String rsFilter = (String) reg.getProperty(org.eclipse.ecf.remoteservice.Constants.ENDPOINT_REMOTESERVICE_FILTER);
+					long rsvcid = (Long) getRegistration().getProperty(org.eclipse.ecf.remoteservice.Constants.SERVICE_ID);
 					oos.writeLong(rsvcid);
-					oos.writeUTF(rsFilter);
 					oos.writeObject(methodName);
 					oos.writeObject(args);
 					oos.flush();
