@@ -11,7 +11,7 @@
 		<unit id="org.eclipse.ecf.remoteservice.sdk.examples.feature.source.feature.group" version="0.0.0"/>
 		<unit id="org.eclipse.ecf.remoteservice.sdk.feature.feature.group" version="0.0.0"/>
 		<unit id="org.eclipse.ecf.remoteservice.sdk.feature.source.feature.group" version="0.0.0"/>
-		<repository location="http://download.eclipse.org/rt/ecf/3.14.33/site.p2"/>
+		<repository location="https://download.eclipse.org/rt/ecf/3.14.33/site.p2/3.14.33.v20220224-2257/"/>
 	</location>
 <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
 <unit id="org.eclipse.pde.feature.group" version="0.0.0"/>
