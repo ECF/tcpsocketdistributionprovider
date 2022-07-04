@@ -63,6 +63,16 @@ public class Activator implements BundleActivator {
 										supportedIntents.add(Constants.OSGI_ASYNC_INTENT);
 										return supportedIntents.toArray(new String[supportedIntents.size()]);
 									}
+									
+									public String[] getImportedConfigs(ContainerTypeDescription description, String[] exporterSupportedConfigs) {
+										if (exporterSupportedConfigs == null)
+											return null;
+										if (Arrays.asList(exporterSupportedConfigs).contains(TCPSocketConstants.CLIENT_PROVIDER_CONFIG_TYPE) || Arrays.asList(exporterSupportedConfigs).contains(TCPSocketConstants.SERVER_PROVIDER_CONFIG_TYPE)) {
+											return new String[] { TCPSocketConstants.CLIENT_PROVIDER_CONFIG_TYPE };
+										}
+										return null;
+									}
+
 
 								})
 						.setServer(false).setHidden(false).build(),

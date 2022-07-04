@@ -242,14 +242,14 @@ public class TCPSocketClientContainer extends AbstractRSAClientContainer {
 					return createRCCESuccess(result);
 				};
 			}
-			Object invokeRemote(String methodName, Object[] args, long to) throws Exception {
+			Object invokeRemote(String methodName, Object[] args, long timeout) throws Exception {
 				if (client == null || !client.isConnected()) {
 					return new ConnectException("Remote service not connected");
 				}
 				RemoteServiceClientRegistration reg = getRegistration();
 				IRemoteServiceID regID = reg.getID();
 				TCPSocketRequest r = new TCPSocketRequest(reg.getContainerID(), regID.getContainerRelativeID(),
-						RemoteCallImpl.createRemoteCall(null, methodName, args, to));
+						RemoteCallImpl.createRemoteCall(null, methodName, args, timeout));
 				try {
 					requests.add(r);
 					client.sendAsynch(reg.getContainerID(), SharedObjectMsg.createMsg("invokeRequest", r));
@@ -260,11 +260,11 @@ public class TCPSocketClientContainer extends AbstractRSAClientContainer {
 				long requestId = r.getRequestId();
 				// Then get the specified timeout and calculate when we should
 				// timeout in real time
-				final long timeout = to + System.currentTimeMillis();
+				final long waitTimeout = timeout + System.currentTimeMillis();
 				boolean doneWaiting = false;
 				Response response = null;
 				// Now loop until timeout time has elapsed
-				while ((timeout - System.currentTimeMillis()) > 0 && !doneWaiting) {
+				while ((waitTimeout - System.currentTimeMillis()) > 0 && !doneWaiting) {
 					synchronized (r) {
 						if (r.isDone()) {
 							doneWaiting = true;
@@ -277,8 +277,8 @@ public class TCPSocketClientContainer extends AbstractRSAClientContainer {
 					}
 				}
 				if (!doneWaiting)
-					throw new ServiceException("Request timed out after " + Long.toString(to) + "ms", //$NON-NLS-1$ //$NON-NLS-2$
-							ServiceException.REMOTE, new TimeoutException(to));
+					throw new ServiceException("Request timed out after " + Long.toString(timeout) + "ms", //$NON-NLS-1$ //$NON-NLS-2$
+							ServiceException.REMOTE, new TimeoutException(timeout));
 				if (response.hadException())
 					throw new ECFException("Exception in remote call", response.getException()); //$NON-NLS-1$
 				// Success...now get values and return
@@ -290,14 +290,14 @@ public class TCPSocketClientContainer extends AbstractRSAClientContainer {
 	@Override
 	public void disconnect() {
 		synchronized (connectLock) {
-			super.disconnect();
 			if (this.client != null) {
+				super.disconnect();
 				this.client.disconnect();
-				this.client = null;
+				this.client = null;				
+				requests.clear();
+				this.connectedID = null;
+				unregisterRemotes();
 			}
-			requests.clear();
-			this.connectedID = null;
 		}
-		unregisterRemotes();
 	}
 }
