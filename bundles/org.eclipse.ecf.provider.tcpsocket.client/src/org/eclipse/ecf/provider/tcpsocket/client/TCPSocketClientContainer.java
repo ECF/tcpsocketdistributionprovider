@@ -32,7 +32,7 @@ import org.eclipse.ecf.provider.comm.SynchEvent;
 import org.eclipse.ecf.provider.comm.tcp.Client;
 import org.eclipse.ecf.provider.remoteservice.generic.RemoteCallImpl;
 import org.eclipse.ecf.provider.remoteservice.generic.Response;
-import org.eclipse.ecf.provider.tcpsocket.common.TCPSocketCustomizer;
+import org.eclipse.ecf.provider.tcpsocket.common.TCPSocketRequestCustomizer;
 import org.eclipse.ecf.provider.tcpsocket.common.TCPSocketNamespace;
 import org.eclipse.ecf.provider.tcpsocket.common.TCPSocketRemoteServiceRegistration;
 import org.eclipse.ecf.provider.tcpsocket.common.TCPSocketRequest;
@@ -254,9 +254,9 @@ public class TCPSocketClientContainer extends AbstractRSAClientContainer {
 				IRemoteServiceID regID = reg.getID();
 				
 				TCPSocketRequest r;
-				ServiceReference<TCPSocketCustomizer> serviceReference = getBundleContext().getServiceReference(TCPSocketCustomizer.class);
+				ServiceReference<TCPSocketRequestCustomizer> serviceReference = getBundleContext().getServiceReference(TCPSocketRequestCustomizer.class);
 				if(serviceReference != null) {
-					TCPSocketCustomizer customizer = getBundleContext().getService(serviceReference);
+					TCPSocketRequestCustomizer customizer = getBundleContext().getService(serviceReference);
 					r = customizer.createRequest(reg.getContainerID(), regID.getContainerRelativeID(),
 							RemoteCallImpl.createRemoteCall(null, methodName, args, timeout));
 					getBundleContext().ungetService(serviceReference);

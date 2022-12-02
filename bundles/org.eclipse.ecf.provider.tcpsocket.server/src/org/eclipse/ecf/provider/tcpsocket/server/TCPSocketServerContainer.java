@@ -57,6 +57,9 @@ import org.eclipse.ecf.remoteservice.asyncproxy.AsyncReturnUtil;
 import org.eclipse.ecf.remoteservice.util.AsyncUtil;
 import org.eclipse.equinox.concurrent.future.IProgressRunnable;
 import org.eclipse.equinox.concurrent.future.ThreadsExecutor;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.FrameworkUtil;
+import org.osgi.framework.ServiceReference;
 
 public class TCPSocketServerContainer extends AbstractRSAContainer implements ISocketAcceptHandler {
 
@@ -158,20 +161,16 @@ public class TCPSocketServerContainer extends AbstractRSAContainer implements IS
 											// If it's set, then check remote call *before* actual invocation
 											if (callPolicy != null)
 												callPolicy.checkRemoteCall(request.getRequestContainerID(), reg, call);
-											Object[] callArgs = call.getParameters();
-											Object[] args = (callArgs == null) ? SharedObjectMsg.nullArgs : callArgs;
-											Object service = reg.getService();
-											// Find appropriate method on service
-											final Method method = ClassUtil.getMethod(service.getClass(), call.getMethod(), SharedObjectMsg.getTypesForParameters(args));
-											// Actually invoke method on service object
-											Object result = method.invoke(service, args);
-											if (result != null) {
-												Class returnType = method.getReturnType();
-												// provider must expose osgi.async property and must be async return type
-												if (AsyncUtil.isOSGIAsync(reg.getReference()) && AsyncReturnUtil.isAsyncType(returnType))
-													result = AsyncReturnUtil.convertAsyncToReturn(result, returnType, call.getTimeout());
+
+											TCPSockerServerRequestExecutor requestExecutor;
+											ServiceReference<TCPSockerServerRequestExecutorCustomizer> serviceReference = getBundleContext().getServiceReference(TCPSockerServerRequestExecutorCustomizer.class);
+											if(serviceReference!=null) {
+												requestExecutor = getBundleContext().getService(serviceReference).createRequestExecutor();
+												getBundleContext().ungetService(serviceReference);
+											}else {
+												requestExecutor = new TCPSockerServerRequestExecutor();
 											}
-											response = new Response(requestId, result);
+											response = requestExecutor.execute(request,reg);
 										} catch (Exception | NoClassDefFoundError e) {
 											response = new Response(requestId, new SerializableStatus(0, "org.eclipse.ecf.provider.tcpsocket.server", null, e).getException());
 											logRemoteCallException("Exception invoking remote service for request=" + request, e); //$NON-NLS-1$
@@ -179,6 +178,10 @@ public class TCPSocketServerContainer extends AbstractRSAContainer implements IS
 										// Then send response message back to client
 										client.sendAsynch(clientID, SharedObjectMsg.createMsg("invokeResponse",response));
 										return null;
+									}
+
+									protected BundleContext getBundleContext() {
+										return FrameworkUtil.getBundle(getClass()).getBundleContext();
 									}
 
 								}, new NullProgressMonitor());
