@@ -32,6 +32,7 @@ import org.eclipse.ecf.provider.comm.SynchEvent;
 import org.eclipse.ecf.provider.comm.tcp.Client;
 import org.eclipse.ecf.provider.remoteservice.generic.RemoteCallImpl;
 import org.eclipse.ecf.provider.remoteservice.generic.Response;
+import org.eclipse.ecf.provider.tcpsocket.common.TCPSocketRequestCustomizer;
 import org.eclipse.ecf.provider.tcpsocket.common.TCPSocketNamespace;
 import org.eclipse.ecf.provider.tcpsocket.common.TCPSocketRemoteServiceRegistration;
 import org.eclipse.ecf.provider.tcpsocket.common.TCPSocketRequest;
@@ -47,7 +48,10 @@ import org.eclipse.ecf.remoteservice.client.RemoteServiceClientRegistration;
 import org.eclipse.ecf.remoteservice.events.IRemoteCallCompleteEvent;
 import org.eclipse.ecf.remoteservice.events.IRemoteServiceUnregisteredEvent;
 import org.eclipse.equinox.concurrent.future.TimeoutException;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.ServiceException;
+import org.osgi.framework.ServiceReference;
 
 public class TCPSocketClientContainer extends AbstractRSAClientContainer {
 
@@ -84,7 +88,7 @@ public class TCPSocketClientContainer extends AbstractRSAClientContainer {
 					long requestId = response.getRequestId();
 					TCPSocketRequest request = null;
 					synchronized (requests) {
-						request = requests.stream().filter(r -> r.getRequestId() == requestId).findAny().get();
+						request = requests.stream().filter(r -> r.getRequestId() == requestId).findAny().orElse(null);
 					}
 					if (request != null) {
 						requests.remove(request);
@@ -248,8 +252,18 @@ public class TCPSocketClientContainer extends AbstractRSAClientContainer {
 				}
 				RemoteServiceClientRegistration reg = getRegistration();
 				IRemoteServiceID regID = reg.getID();
-				TCPSocketRequest r = new TCPSocketRequest(reg.getContainerID(), regID.getContainerRelativeID(),
-						RemoteCallImpl.createRemoteCall(null, methodName, args, timeout));
+				
+				TCPSocketRequest r;
+				ServiceReference<TCPSocketRequestCustomizer> serviceReference = getBundleContext().getServiceReference(TCPSocketRequestCustomizer.class);
+				if(serviceReference != null) {
+					TCPSocketRequestCustomizer customizer = getBundleContext().getService(serviceReference);
+					r = customizer.createRequest(reg.getContainerID(), regID.getContainerRelativeID(),
+							RemoteCallImpl.createRemoteCall(null, methodName, args, timeout));
+					getBundleContext().ungetService(serviceReference);
+				} else {
+					r = new TCPSocketRequest(reg.getContainerID(), regID.getContainerRelativeID(),
+							RemoteCallImpl.createRemoteCall(null, methodName, args, timeout));
+				}
 				try {
 					requests.add(r);
 					client.sendAsynch(reg.getContainerID(), SharedObjectMsg.createMsg("invokeRequest", r));
@@ -283,6 +297,9 @@ public class TCPSocketClientContainer extends AbstractRSAClientContainer {
 					throw new ECFException("Exception in remote call", response.getException()); //$NON-NLS-1$
 				// Success...now get values and return
 				return response.getResponse();
+			}
+			private BundleContext getBundleContext() {
+				return FrameworkUtil.getBundle(getClass()).getBundleContext();
 			}
 		};
 	}
