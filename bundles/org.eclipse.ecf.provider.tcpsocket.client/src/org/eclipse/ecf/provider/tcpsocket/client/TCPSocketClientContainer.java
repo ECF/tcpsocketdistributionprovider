@@ -12,6 +12,8 @@ import java.io.IOException;
 import java.net.ConnectException;
 import java.net.ProtocolException;
 import java.util.ArrayList;
+import java.util.Dictionary;
+import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -32,12 +34,11 @@ import org.eclipse.ecf.provider.comm.SynchEvent;
 import org.eclipse.ecf.provider.comm.tcp.Client;
 import org.eclipse.ecf.provider.remoteservice.generic.RemoteCallImpl;
 import org.eclipse.ecf.provider.remoteservice.generic.Response;
-import org.eclipse.ecf.provider.tcpsocket.common.TCPSocketRequestCustomizer;
 import org.eclipse.ecf.provider.tcpsocket.common.TCPSocketNamespace;
 import org.eclipse.ecf.provider.tcpsocket.common.TCPSocketRemoteServiceRegistration;
 import org.eclipse.ecf.provider.tcpsocket.common.TCPSocketRequest;
+import org.eclipse.ecf.provider.tcpsocket.common.TCPSocketRequestCustomizer;
 import org.eclipse.ecf.remoteservice.IRemoteService;
-import org.eclipse.ecf.remoteservice.IRemoteServiceID;
 import org.eclipse.ecf.remoteservice.IRemoteServiceListener;
 import org.eclipse.ecf.remoteservice.IRemoteServiceReference;
 import org.eclipse.ecf.remoteservice.RemoteServiceID;
@@ -48,10 +49,7 @@ import org.eclipse.ecf.remoteservice.client.RemoteServiceClientRegistration;
 import org.eclipse.ecf.remoteservice.events.IRemoteCallCompleteEvent;
 import org.eclipse.ecf.remoteservice.events.IRemoteServiceUnregisteredEvent;
 import org.eclipse.equinox.concurrent.future.TimeoutException;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.ServiceException;
-import org.osgi.framework.ServiceReference;
 
 public class TCPSocketClientContainer extends AbstractRSAClientContainer {
 
@@ -251,19 +249,7 @@ public class TCPSocketClientContainer extends AbstractRSAClientContainer {
 					return new ConnectException("Remote service not connected");
 				}
 				RemoteServiceClientRegistration reg = getRegistration();
-				IRemoteServiceID regID = reg.getID();
-				
-				TCPSocketRequest r;
-				ServiceReference<TCPSocketRequestCustomizer> serviceReference = getBundleContext().getServiceReference(TCPSocketRequestCustomizer.class);
-				if(serviceReference != null) {
-					TCPSocketRequestCustomizer customizer = getBundleContext().getService(serviceReference);
-					r = customizer.createRequest(reg.getContainerID(), regID.getContainerRelativeID(),
-							RemoteCallImpl.createRemoteCall(null, methodName, args, timeout));
-					getBundleContext().ungetService(serviceReference);
-				} else {
-					r = new TCPSocketRequest(reg.getContainerID(), regID.getContainerRelativeID(),
-							RemoteCallImpl.createRemoteCall(null, methodName, args, timeout));
-				}
+				TCPSocketRequest r = createRequest(reg, RemoteCallImpl.createRemoteCall(null, methodName, args, timeout));
 				try {
 					requests.add(r);
 					client.sendAsynch(reg.getContainerID(), SharedObjectMsg.createMsg("invokeRequest", r));
@@ -298,10 +284,20 @@ public class TCPSocketClientContainer extends AbstractRSAClientContainer {
 				// Success...now get values and return
 				return response.getResponse();
 			}
-			private BundleContext getBundleContext() {
-				return FrameworkUtil.getBundle(getClass()).getBundleContext();
-			}
 		};
+	}
+
+	protected TCPSocketRequest createRequest(RemoteServiceClientRegistration registration,
+			RemoteCallImpl call) {
+		// Create Dictionary with the ecf.socket.targetid set to the target container ID as String
+		Dictionary<String, String> d = new Hashtable<String, String>();
+		d.put(TCPSocketRequestCustomizer.TARGET_ID_PROPNAME, registration.getID().getContainerID().getName());
+		// Then get/find appropriate customizer by asking the TCPSocketClientComponent
+		TCPSocketRequestCustomizer customizer = TCPSocketClientComponent.getCustomizer(d);
+		if (customizer != null) {
+			return customizer.createRequest(registration.getContainerID(), registration.getID().getContainerRelativeID(), call);
+		}
+		return new TCPSocketRequest(registration.getContainerID(), registration.getID().getContainerRelativeID(), call);
 	}
 
 	@Override

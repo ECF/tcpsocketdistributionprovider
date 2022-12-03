@@ -6,13 +6,6 @@
 <unit id="org.eclipse.license.feature.group" version="1.0.1.v20140414-1359"/>
 <repository location="http://download.eclipse.org/cbi/updates/license/1.0.1.v20140414-1359"/>
 </location>
-	<location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
-		<unit id="org.eclipse.ecf.remoteservice.sdk.examples.feature.feature.group" version="0.0.0"/>
-		<unit id="org.eclipse.ecf.remoteservice.sdk.examples.feature.source.feature.group" version="0.0.0"/>
-		<unit id="org.eclipse.ecf.remoteservice.sdk.feature.feature.group" version="0.0.0"/>
-		<unit id="org.eclipse.ecf.remoteservice.sdk.feature.source.feature.group" version="0.0.0"/>
-		<repository location="https://download.eclipse.org/rt/ecf/3.14.33/site.p2/3.14.33.v20220224-2257/"/>
-	</location>
 <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
 <unit id="org.eclipse.pde.feature.group" version="0.0.0"/>
 <unit id="org.eclipse.pde.source.feature.group" version="0.0.0"/>
@@ -20,5 +13,12 @@
 <unit id="org.eclipse.platform.source.feature.group" version="0.0.0"/>
 <repository location="http://download.eclipse.org/releases/2022-03/"/>
 </location>
+	<location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
+		<repository location="http://download.eclipse.org/rt/ecf/3.14.37/site.p2"/>
+		<unit id="org.eclipse.ecf.remoteservice.sdk.examples.feature.feature.group" version="1.0.200.v20221117-1507"/>
+		<unit id="org.eclipse.ecf.remoteservice.sdk.examples.feature.source.feature.group" version="1.0.200.v20221117-1507"/>
+		<unit id="org.eclipse.ecf.remoteservice.sdk.feature.feature.group" version="3.14.37.v20221119-2038"/>
+		<unit id="org.eclipse.ecf.remoteservice.sdk.feature.source.feature.group" version="3.14.37.v20221119-2038"/>
+	</location>
 </locations>
 </target>
