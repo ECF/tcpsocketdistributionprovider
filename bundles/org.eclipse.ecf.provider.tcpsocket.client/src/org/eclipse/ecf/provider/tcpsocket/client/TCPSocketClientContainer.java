@@ -12,8 +12,6 @@ import java.io.IOException;
 import java.net.ConnectException;
 import java.net.ProtocolException;
 import java.util.ArrayList;
-import java.util.Dictionary;
-import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -34,10 +32,10 @@ import org.eclipse.ecf.provider.comm.SynchEvent;
 import org.eclipse.ecf.provider.comm.tcp.Client;
 import org.eclipse.ecf.provider.remoteservice.generic.RemoteCallImpl;
 import org.eclipse.ecf.provider.remoteservice.generic.Response;
+import org.eclipse.ecf.provider.tcpsocket.client.internal.TCPSocketClientComponent;
 import org.eclipse.ecf.provider.tcpsocket.common.TCPSocketNamespace;
 import org.eclipse.ecf.provider.tcpsocket.common.TCPSocketRemoteServiceRegistration;
 import org.eclipse.ecf.provider.tcpsocket.common.TCPSocketRequest;
-import org.eclipse.ecf.provider.tcpsocket.common.TCPSocketRequestCustomizer;
 import org.eclipse.ecf.remoteservice.IRemoteService;
 import org.eclipse.ecf.remoteservice.IRemoteServiceListener;
 import org.eclipse.ecf.remoteservice.IRemoteServiceReference;
@@ -61,25 +59,30 @@ public class TCPSocketClientContainer extends AbstractRSAClientContainer {
 		public Object handleSynchEvent(SynchEvent event) throws IOException {
 			return null;
 		}
+
 		@Override
 		public ID getEventHandlerID() {
 			return getID();
 		}
+
 		@Override
 		public void handleDisconnectEvent(DisconnectEvent event) {
 			synchronized (connectLock) {
 				disconnect();
 			}
 		}
+
 		@Override
 		public void handleConnectEvent(ConnectionEvent event) {
 		}
+
 		@Override
 		public void handleAsynchEvent(AsynchEvent event) throws IOException {
 			try {
 				SharedObjectMsg msg = (SharedObjectMsg) event.getData();
 				String msgName = msg.getMethod();
-				// First type of message/msgName handled by tcp socket client is 'invokeResponse'
+				// First type of message/msgName handled by tcp socket client is
+				// 'invokeResponse'
 				// This is received in response to a remote 'invoke method' request
 				if ("invokeResponse".equals(msgName)) {
 					Response response = (Response) msg.getParameters()[0];
@@ -96,16 +99,19 @@ public class TCPSocketClientContainer extends AbstractRSAClientContainer {
 							request.notify();
 						}
 					}
-				// Second is 'addRegistration' in case server dynamically adds/register a
-				// another remote service registration
+					// Second is 'addRegistration' in case server dynamically adds/register a
+					// another remote service registration
 				} else if ("addRegistration".equals(msgName)) {
-					TCPSocketRemoteServiceRegistration reg = (TCPSocketRemoteServiceRegistration) msg.getParameters()[0];
+					TCPSocketRemoteServiceRegistration reg = (TCPSocketRemoteServiceRegistration) msg
+							.getParameters()[0];
 					if (reg != null) {
-						registerRemote(TCPSocketClientContainer.this.connectedID,reg.interfaces,reg.properties);
+						registerRemote(TCPSocketClientContainer.this.connectedID, reg.interfaces, reg.properties);
 					}
-				// Finally is 'removeRegistration' if server dynamically unregisters a remote service
+					// Finally is 'removeRegistration' if server dynamically unregisters a remote
+					// service
 				} else if ("removeRegistration".equals(msgName)) {
-					TCPSocketRemoteServiceRegistration reg = (TCPSocketRemoteServiceRegistration) msg.getParameters()[0];
+					TCPSocketRemoteServiceRegistration reg = (TCPSocketRemoteServiceRegistration) msg
+							.getParameters()[0];
 					if (reg != null) {
 						RSAClientRegistration clientReg = findRemoteServiceRegistration(reg.rsvcId);
 						if (clientReg != null) {
@@ -123,10 +129,12 @@ public class TCPSocketClientContainer extends AbstractRSAClientContainer {
 
 	// This method should be added to superclass also
 	RSAClientRegistration findRemoteServiceRegistration(long rsvcId) {
-		IRemoteServiceReference ref = registry.findServiceReference(new RemoteServiceID(getConnectNamespace(), getConnectedID(), rsvcId));
-		return ref == null?null:(RSAClientRegistration) registry.findServiceRegistration((RemoteServiceClientReference) ref);
+		IRemoteServiceReference ref = registry
+				.findServiceReference(new RemoteServiceID(getConnectNamespace(), getConnectedID(), rsvcId));
+		return ref == null ? null
+				: (RSAClientRegistration) registry.findServiceRegistration((RemoteServiceClientReference) ref);
 	}
-	
+
 	private Client client;
 
 	public TCPSocketClientContainer() {
@@ -138,21 +146,22 @@ public class TCPSocketClientContainer extends AbstractRSAClientContainer {
 			Map<String, Object> endpointDescriptionProperties) {
 		return null;
 	}
-	
+
 	void registerRemote(ID targetID, String[] interfaces, Map<String, Object> endpointDescriptionProperties) {
 		synchronized (registrations) {
 			registrations.add(super.registerEndpoint(targetID, interfaces, endpointDescriptionProperties));
 		}
 	}
-	
+
 	void unregisterRemotes() {
 		synchronized (registrations) {
-			for(Iterator<RemoteServiceClientRegistration> r = registrations.iterator(); r.hasNext(); ) {
+			for (Iterator<RemoteServiceClientRegistration> r = registrations.iterator(); r.hasNext();) {
 				unregisterEndpoint((RSAClientRegistration) r.next());
 				r.remove();
 			}
 		}
 	}
+
 	// This should method be added to super class
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	void unregisterEndpoint(RSAClientRegistration r) {
@@ -168,14 +177,17 @@ public class TCPSocketClientContainer extends AbstractRSAClientContainer {
 				public IRemoteServiceReference getReference() {
 					return r.getReference();
 				}
+
 				@Override
 				public ID getLocalContainerID() {
 					return getID();
 				}
+
 				@Override
 				public ID getContainerID() {
 					return r.getContainerID();
 				}
+
 				@Override
 				public String[] getClazzes() {
 					return r.getClazzes();
@@ -184,7 +196,7 @@ public class TCPSocketClientContainer extends AbstractRSAClientContainer {
 		}
 
 	}
-	
+
 	@Override
 	public void connect(ID targetID, IConnectContext connectContext1) throws ContainerConnectException {
 		synchronized (connectLock) {
@@ -235,6 +247,7 @@ public class TCPSocketClientContainer extends AbstractRSAClientContainer {
 					return invokeRemote(call.getReflectMethod().getName(), call.getParameters(), call.getTimeout());
 				};
 			}
+
 			@Override
 			protected Callable<IRemoteCallCompleteEvent> getAsyncCallable(final RSARemoteCall call) {
 				return () -> {
@@ -244,12 +257,14 @@ public class TCPSocketClientContainer extends AbstractRSAClientContainer {
 					return createRCCESuccess(result);
 				};
 			}
+
 			Object invokeRemote(String methodName, Object[] args, long timeout) throws Exception {
 				if (client == null || !client.isConnected()) {
 					return new ConnectException("Remote service not connected");
 				}
 				RemoteServiceClientRegistration reg = getRegistration();
-				TCPSocketRequest r = createRequest(reg, RemoteCallImpl.createRemoteCall(null, methodName, args, timeout));
+				TCPSocketRequest r = createRequest(reg,
+						RemoteCallImpl.createRemoteCall(null, methodName, args, timeout));
 				try {
 					requests.add(r);
 					client.sendAsynch(reg.getContainerID(), SharedObjectMsg.createMsg("invokeRequest", r));
@@ -287,15 +302,13 @@ public class TCPSocketClientContainer extends AbstractRSAClientContainer {
 		};
 	}
 
-	protected TCPSocketRequest createRequest(RemoteServiceClientRegistration registration,
-			RemoteCallImpl call) {
-		// Create Dictionary with the ecf.socket.targetid set to the target container ID as String
-		Dictionary<String, String> d = new Hashtable<String, String>();
-		d.put(TCPSocketRequestCustomizer.TARGET_ID_PROPNAME, registration.getID().getContainerID().getName());
+	protected TCPSocketRequest createRequest(RemoteServiceClientRegistration registration, RemoteCallImpl call) {
 		// Then get/find appropriate customizer by asking the TCPSocketClientComponent
-		TCPSocketRequestCustomizer customizer = TCPSocketClientComponent.getCustomizer(d);
+		TCPSocketRequestCustomizer customizer = TCPSocketClientComponent
+				.getCustomizer(registration.getID().getContainerID().getName());
 		if (customizer != null) {
-			return customizer.createRequest(registration.getContainerID(), registration.getID().getContainerRelativeID(), call);
+			return customizer.createRequest(registration.getContainerID(),
+					registration.getID().getContainerRelativeID(), call);
 		}
 		return new TCPSocketRequest(registration.getContainerID(), registration.getID().getContainerRelativeID(), call);
 	}
@@ -306,7 +319,7 @@ public class TCPSocketClientContainer extends AbstractRSAClientContainer {
 			if (this.client != null) {
 				super.disconnect();
 				this.client.disconnect();
-				this.client = null;				
+				this.client = null;
 				requests.clear();
 				this.connectedID = null;
 				unregisterRemotes();

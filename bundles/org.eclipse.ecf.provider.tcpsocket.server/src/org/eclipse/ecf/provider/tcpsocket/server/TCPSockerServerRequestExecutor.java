@@ -1,6 +1,5 @@
 package org.eclipse.ecf.provider.tcpsocket.server;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 import org.eclipse.ecf.core.sharedobject.SharedObjectMsg;
@@ -29,6 +28,7 @@ public class TCPSockerServerRequestExecutor {
 			// Actually invoke method on service object
 			Object result = method.invoke(service, args);
 			if (result != null) {
+				@SuppressWarnings("rawtypes")
 				Class returnType = method.getReturnType();
 				// provider must expose osgi.async property and must be async return type
 				if (AsyncUtil.isOSGIAsync(reg.getReference()) && AsyncReturnUtil.isAsyncType(returnType))

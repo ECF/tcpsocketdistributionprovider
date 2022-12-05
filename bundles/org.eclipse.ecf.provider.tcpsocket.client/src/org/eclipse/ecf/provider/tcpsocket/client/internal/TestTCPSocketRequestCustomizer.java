@@ -1,12 +1,12 @@
-package org.eclipse.ecf.provider.tcpsocket.client;
+package org.eclipse.ecf.provider.tcpsocket.client.internal;
 
 import org.eclipse.ecf.core.identity.ID;
 import org.eclipse.ecf.provider.remoteservice.generic.RemoteCallImpl;
+import org.eclipse.ecf.provider.tcpsocket.client.TCPSocketRequestCustomizer;
 import org.eclipse.ecf.provider.tcpsocket.common.TCPSocketRequest;
-import org.eclipse.ecf.provider.tcpsocket.common.TCPSocketRequestCustomizer;
 import org.osgi.service.component.annotations.Component;
 
-@Component(service=TCPSocketRequestCustomizer.class, property = { "ecf.socket.targetidfilter=tcp://loca*" })
+@Component(service = TCPSocketRequestCustomizer.class, property = { "ecf.socket.targetidfilter=tcp://loca*" })
 public class TestTCPSocketRequestCustomizer implements TCPSocketRequestCustomizer {
 
 	@Override

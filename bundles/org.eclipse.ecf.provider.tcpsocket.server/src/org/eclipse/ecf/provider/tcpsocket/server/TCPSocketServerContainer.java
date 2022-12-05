@@ -11,7 +11,6 @@ package org.eclipse.ecf.provider.tcpsocket.server;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.lang.reflect.Method;
 import java.net.InetAddress;
 import java.net.ProtocolException;
 import java.net.Socket;
@@ -28,7 +27,6 @@ import org.eclipse.ecf.core.identity.ID;
 import org.eclipse.ecf.core.sharedobject.SharedObjectMsg;
 import org.eclipse.ecf.core.status.SerializableStatus;
 import org.eclipse.ecf.core.util.ECFException;
-import org.eclipse.ecf.core.util.reflection.ClassUtil;
 import org.eclipse.ecf.provider.comm.AsynchEvent;
 import org.eclipse.ecf.provider.comm.ConnectionEvent;
 import org.eclipse.ecf.provider.comm.DisconnectEvent;
@@ -45,6 +43,7 @@ import org.eclipse.ecf.provider.remoteservice.generic.Response;
 import org.eclipse.ecf.provider.tcpsocket.common.TCPSocketNamespace;
 import org.eclipse.ecf.provider.tcpsocket.common.TCPSocketRemoteServiceRegistration;
 import org.eclipse.ecf.provider.tcpsocket.common.TCPSocketRequest;
+import org.eclipse.ecf.provider.tcpsocket.server.internal.TCPSocketServerComponent;
 import org.eclipse.ecf.remoteservice.AbstractRSAContainer;
 import org.eclipse.ecf.remoteservice.IRemoteServiceCallPolicy;
 import org.eclipse.ecf.remoteservice.IRemoteServiceContainerAdapter;
@@ -53,13 +52,8 @@ import org.eclipse.ecf.remoteservice.RSARemoteServiceContainerAdapter;
 import org.eclipse.ecf.remoteservice.RSARemoteServiceContainerAdapter.RSARemoteServiceRegistration;
 import org.eclipse.ecf.remoteservice.RemoteServiceRegistrationImpl;
 import org.eclipse.ecf.remoteservice.RemoteServiceRegistryImpl;
-import org.eclipse.ecf.remoteservice.asyncproxy.AsyncReturnUtil;
-import org.eclipse.ecf.remoteservice.util.AsyncUtil;
 import org.eclipse.equinox.concurrent.future.IProgressRunnable;
 import org.eclipse.equinox.concurrent.future.ThreadsExecutor;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.FrameworkUtil;
-import org.osgi.framework.ServiceReference;
 
 public class TCPSocketServerContainer extends AbstractRSAContainer implements ISocketAcceptHandler {
 
@@ -161,16 +155,7 @@ public class TCPSocketServerContainer extends AbstractRSAContainer implements IS
 											// If it's set, then check remote call *before* actual invocation
 											if (callPolicy != null)
 												callPolicy.checkRemoteCall(request.getRequestContainerID(), reg, call);
-
-											TCPSockerServerRequestExecutor requestExecutor;
-											ServiceReference<TCPSockerServerRequestExecutorCustomizer> serviceReference = getBundleContext().getServiceReference(TCPSockerServerRequestExecutorCustomizer.class);
-											if(serviceReference!=null) {
-												requestExecutor = getBundleContext().getService(serviceReference).createRequestExecutor();
-												getBundleContext().ungetService(serviceReference);
-											}else {
-												requestExecutor = new TCPSockerServerRequestExecutor();
-											}
-											response = requestExecutor.execute(request,reg);
+											response = createTCPSocketServerRequestExecutor(reg).execute(request,reg);
 										} catch (Exception | NoClassDefFoundError e) {
 											response = new Response(requestId, new SerializableStatus(0, "org.eclipse.ecf.provider.tcpsocket.server", null, e).getException());
 											logRemoteCallException("Exception invoking remote service for request=" + request, e); //$NON-NLS-1$
@@ -178,10 +163,6 @@ public class TCPSocketServerContainer extends AbstractRSAContainer implements IS
 										// Then send response message back to client
 										client.sendAsynch(clientID, SharedObjectMsg.createMsg("invokeResponse",response));
 										return null;
-									}
-
-									protected BundleContext getBundleContext() {
-										return FrameworkUtil.getBundle(getClass()).getBundleContext();
 									}
 
 								}, new NullProgressMonitor());
@@ -288,6 +269,15 @@ public class TCPSocketServerContainer extends AbstractRSAContainer implements IS
 		}
 	}
 
+	TCPSockerServerRequestExecutor createTCPSocketServerRequestExecutor(RemoteServiceRegistrationImpl registration) {
+		TCPSocketServerRequestExecutorCustomizer customizer = TCPSocketServerComponent.getCustomizer(registration.getContainerID().getName());
+		if (customizer != null) {
+			return customizer.createRequestExecutor();
+		} else {
+			return new TCPSockerServerRequestExecutor();
+		}
+	}
+	
 	@Override
 	public void dispose() {
 		if (this.serverSocket != null) {

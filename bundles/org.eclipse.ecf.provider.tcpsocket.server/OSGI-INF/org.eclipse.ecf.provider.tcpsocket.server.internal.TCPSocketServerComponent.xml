@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scr:component xmlns:scr="http://www.osgi.org/xmlns/scr/v1.1.0" immediate="true" name="org.eclipse.ecf.provider.tcpsocket.server.internal.TCPSocketServerComponent">
+   <reference bind="bindExecutorCustomizer" cardinality="0..n" interface="org.eclipse.ecf.provider.tcpsocket.server.TCPSocketServerRequestExecutorCustomizer" name="ExecutorCustomizer" policy="dynamic" unbind="unbindExecutorCustomizer"/>
+   <implementation class="org.eclipse.ecf.provider.tcpsocket.server.internal.TCPSocketServerComponent"/>
+</scr:component>

@@ -6,13 +6,14 @@
  * 
  * Contributors: Composent, Inc. - initial API and implementation
  ******************************************************************************/
-package org.eclipse.ecf.provider.tcpsocket.client;
+package org.eclipse.ecf.provider.tcpsocket.client.internal;
 
 import java.util.ArrayList;
 import java.util.Dictionary;
+import java.util.Hashtable;
 import java.util.List;
 
-import org.eclipse.ecf.provider.tcpsocket.common.TCPSocketRequestCustomizer;
+import org.eclipse.ecf.provider.tcpsocket.client.TCPSocketRequestCustomizer;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.component.annotations.Component;
@@ -23,49 +24,51 @@ import org.osgi.service.component.annotations.ReferencePolicy;
 @Component
 public class TCPSocketClientComponent {
 
+	private static final String TARGET_ID_PROPNAME = "ecf.socket.component.targetid";
 	private static TCPSocketClientComponent c;
-	
+
 	private List<ServiceReference<TCPSocketRequestCustomizer>> refs = new ArrayList<ServiceReference<TCPSocketRequestCustomizer>>();
-	
+
 	public TCPSocketClientComponent() {
 		c = this;
 	}
-	
+
 	@Reference(cardinality = ReferenceCardinality.MULTIPLE, policy = ReferencePolicy.DYNAMIC)
 	void bindTCPSocketRequestCustomizer(ServiceReference<TCPSocketRequestCustomizer> ref) {
 		synchronized (refs) {
 			refs.add(ref);
 		}
 	}
-	
-	
+
 	void unbindTCPSocketRequestCustomizer(ServiceReference<TCPSocketRequestCustomizer> ref) {
 		synchronized (refs) {
 			refs.remove(ref);
 		}
 	}
-	
-	protected static TCPSocketRequestCustomizer getCustomizer(Dictionary<String,String> d) {
-		return c.getCustomizer0(d);
+
+	public static TCPSocketRequestCustomizer getCustomizer(String targetId) {
+		return c.getCustomizer0(targetId);
 	}
-	
-	TCPSocketRequestCustomizer getCustomizer0(Dictionary<String,String> d) {
+
+	TCPSocketRequestCustomizer getCustomizer0(String targetId) {
 		List<ServiceReference<TCPSocketRequestCustomizer>> refsCopy = null;
 		ServiceReference<TCPSocketRequestCustomizer> resultRef = null;
 		synchronized (refs) {
 			refsCopy = new ArrayList<ServiceReference<TCPSocketRequestCustomizer>>(refs);
 		}
+		Dictionary<String, String> d = new Hashtable<String, String>();
+		d.put(TARGET_ID_PROPNAME, targetId);
 		for (ServiceReference<TCPSocketRequestCustomizer> ref : refsCopy) {
 			// This looks for the TARGET_ID_FILTER_PROP on the TCPSocketRequestCustomizer
 			Object o = ref.getProperty(TCPSocketRequestCustomizer.TARGET_ID_FILTER_PROPNAME);
 			// If it's set/not null
 			if (o != null && o instanceof String) {
 				try {
-					// Use it to create a filter...i.e "(ecf.socket.targetid=<target_id_filter_propvalue>)"
-					if (Activator.getContext()
-							.createFilter(
-									"(" + TCPSocketRequestCustomizer.TARGET_ID_PROPNAME + "=" + ((String) o) + ")")
-							// Then it looks for a match against the Dictionary d...which has name->value:  ecf.socket.targetid=<container connectedid>"
+					// Use it to create a filter...i.e
+					// "(ecf.socket.targetid=<target_id_filter_propvalue>)"
+					if (Activator.getContext().createFilter("(" + TARGET_ID_PROPNAME + "=" + ((String) o) + ")")
+							// Then it looks for a match against the Dictionary d...which has name->value:
+							// ecf.socket.targetid=<container connectedid>"
 							.match(d)) {
 						// If this matches then we choose higher priority
 						resultRef = chooseHigherPriority(ref, resultRef);
@@ -83,8 +86,9 @@ public class TCPSocketClientComponent {
 		}
 		return (resultRef == null) ? null : Activator.getContext().getService(resultRef);
 	}
-	
-	private ServiceReference<TCPSocketRequestCustomizer> chooseHigherPriority(ServiceReference<TCPSocketRequestCustomizer> first, ServiceReference<TCPSocketRequestCustomizer> second) {
+
+	private ServiceReference<TCPSocketRequestCustomizer> chooseHigherPriority(
+			ServiceReference<TCPSocketRequestCustomizer> first, ServiceReference<TCPSocketRequestCustomizer> second) {
 		if (second != null) {
 			// If there is more than one, then take the one with the
 			// highest priority
@@ -94,6 +98,5 @@ public class TCPSocketClientComponent {
 		}
 		return first;
 	}
-	
 
 }

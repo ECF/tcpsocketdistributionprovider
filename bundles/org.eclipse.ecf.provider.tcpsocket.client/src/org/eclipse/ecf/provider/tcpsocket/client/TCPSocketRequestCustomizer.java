@@ -6,15 +6,15 @@
  * 
  * Contributors: Composent, Inc. - initial API and implementation
  ******************************************************************************/
-package org.eclipse.ecf.provider.tcpsocket.common;
+package org.eclipse.ecf.provider.tcpsocket.client;
 
 import org.eclipse.ecf.core.identity.ID;
 import org.eclipse.ecf.provider.remoteservice.generic.RemoteCallImpl;
+import org.eclipse.ecf.provider.tcpsocket.common.TCPSocketRequest;
 
 public interface TCPSocketRequestCustomizer {
 	
 	public static final String TARGET_ID_FILTER_PROPNAME = "ecf.socket.targetidfilter";
-	public static final String TARGET_ID_PROPNAME = "ecf.socket.targetid";
 	
 	TCPSocketRequest createRequest(ID requestContainerID, long serviceId, RemoteCallImpl call);
 
