@@ -1,7 +1,6 @@
 package org.eclipse.ecf.provider.tcpsocket.server;
 
 import java.lang.reflect.Method;
-
 import org.eclipse.ecf.core.sharedobject.SharedObjectMsg;
 import org.eclipse.ecf.core.status.SerializableStatus;
 import org.eclipse.ecf.core.util.reflection.ClassUtil;

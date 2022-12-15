@@ -3,25 +3,15 @@
  * program and the accompanying materials are made available under the terms of
  * the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors: Composent, Inc. - initial API and implementation
  ******************************************************************************/
 package org.eclipse.ecf.provider.tcpsocket.client.internal;
 
-import java.util.ArrayList;
-import java.util.Dictionary;
-import java.util.Hashtable;
-import java.util.List;
-import java.util.Map;
-
+import java.util.*;
 import org.eclipse.ecf.provider.tcpsocket.client.TCPSocketRequestCustomizer;
-import org.osgi.framework.FrameworkUtil;
-import org.osgi.framework.InvalidSyntaxException;
-import org.osgi.framework.ServiceReference;
-import org.osgi.service.component.annotations.Component;
-import org.osgi.service.component.annotations.Reference;
-import org.osgi.service.component.annotations.ReferenceCardinality;
-import org.osgi.service.component.annotations.ReferencePolicy;
+import org.osgi.framework.*;
+import org.osgi.service.component.annotations.*;
 
 @Component
 public class TCPSocketClientComponent {
@@ -29,7 +19,7 @@ public class TCPSocketClientComponent {
 	private static final String TARGET_ID_PROPNAME = "ecf.socket.component.targetid";
 	private static TCPSocketClientComponent c;
 
-	private List<ServiceReference<TCPSocketRequestCustomizer>> refs = new ArrayList<ServiceReference<TCPSocketRequestCustomizer>>();
+	private final List<ServiceReference<TCPSocketRequestCustomizer>> refs = new ArrayList<>();
 
 	public TCPSocketClientComponent() {
 		c = this;
@@ -56,7 +46,7 @@ public class TCPSocketClientComponent {
 		List<ServiceReference<TCPSocketRequestCustomizer>> refsCopy = null;
 		ServiceReference<TCPSocketRequestCustomizer> resultRef = null;
 		synchronized (refs) {
-			refsCopy = new ArrayList<ServiceReference<TCPSocketRequestCustomizer>>(refs);
+			refsCopy = new ArrayList<>(refs);
 		}
 		for (ServiceReference<TCPSocketRequestCustomizer> ref : refsCopy) {
 			// This looks for the TARGET_ID_FILTER_PROP on the TCPSocketRequestCustomizer
@@ -65,7 +55,7 @@ public class TCPSocketClientComponent {
 			if (o instanceof String) {
 				try {
 					Dictionary<String, String> d = FrameworkUtil.asDictionary(Map.of(TARGET_ID_PROPNAME, targetId));
-					
+
 					// Use it to create a filter...i.e
 					// "(ecf.socket.targetid=<target_id_filter_propvalue>)"
 					if (Activator.getContext().createFilter("(" + TARGET_ID_PROPNAME + "=" + ((String) o) + ")")

@@ -3,7 +3,7 @@
  * program and the accompanying materials are made available under the terms of
  * the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors: Composent, Inc. - initial API and implementation
  ******************************************************************************/
 package org.eclipse.ecf.provider.tcpsocket.client;
@@ -11,12 +11,8 @@ package org.eclipse.ecf.provider.tcpsocket.client;
 import java.io.IOException;
 import java.net.ConnectException;
 import java.net.ProtocolException;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.Callable;
-
 import org.eclipse.ecf.core.ContainerConnectException;
 import org.eclipse.ecf.core.events.ContainerConnectedEvent;
 import org.eclipse.ecf.core.events.ContainerConnectingEvent;
@@ -24,26 +20,14 @@ import org.eclipse.ecf.core.identity.ID;
 import org.eclipse.ecf.core.security.IConnectContext;
 import org.eclipse.ecf.core.sharedobject.SharedObjectMsg;
 import org.eclipse.ecf.core.util.ECFException;
-import org.eclipse.ecf.provider.comm.AsynchEvent;
-import org.eclipse.ecf.provider.comm.ConnectionEvent;
-import org.eclipse.ecf.provider.comm.DisconnectEvent;
-import org.eclipse.ecf.provider.comm.ISynchAsynchEventHandler;
-import org.eclipse.ecf.provider.comm.SynchEvent;
+import org.eclipse.ecf.provider.comm.*;
 import org.eclipse.ecf.provider.comm.tcp.Client;
 import org.eclipse.ecf.provider.remoteservice.generic.RemoteCallImpl;
 import org.eclipse.ecf.provider.remoteservice.generic.Response;
 import org.eclipse.ecf.provider.tcpsocket.client.internal.TCPSocketClientComponent;
-import org.eclipse.ecf.provider.tcpsocket.common.TCPSocketNamespace;
-import org.eclipse.ecf.provider.tcpsocket.common.TCPSocketRemoteServiceRegistration;
-import org.eclipse.ecf.provider.tcpsocket.common.TCPSocketRequest;
-import org.eclipse.ecf.remoteservice.IRemoteService;
-import org.eclipse.ecf.remoteservice.IRemoteServiceListener;
-import org.eclipse.ecf.remoteservice.IRemoteServiceReference;
-import org.eclipse.ecf.remoteservice.RemoteServiceID;
-import org.eclipse.ecf.remoteservice.client.AbstractRSAClientContainer;
-import org.eclipse.ecf.remoteservice.client.AbstractRSAClientService;
-import org.eclipse.ecf.remoteservice.client.RemoteServiceClientReference;
-import org.eclipse.ecf.remoteservice.client.RemoteServiceClientRegistration;
+import org.eclipse.ecf.provider.tcpsocket.common.*;
+import org.eclipse.ecf.remoteservice.*;
+import org.eclipse.ecf.remoteservice.client.*;
 import org.eclipse.ecf.remoteservice.events.IRemoteCallCompleteEvent;
 import org.eclipse.ecf.remoteservice.events.IRemoteServiceUnregisteredEvent;
 import org.eclipse.equinox.concurrent.future.TimeoutException;
@@ -51,8 +35,8 @@ import org.osgi.framework.ServiceException;
 
 public class TCPSocketClientContainer extends AbstractRSAClientContainer {
 
-	private List<RemoteServiceClientRegistration> registrations = new ArrayList<RemoteServiceClientRegistration>();
-	private final List<TCPSocketRequest> requests = new ArrayList<TCPSocketRequest>();
+	private final List<RemoteServiceClientRegistration> registrations = new ArrayList<>();
+	private final List<TCPSocketRequest> requests = new ArrayList<>();
 
 	ISynchAsynchEventHandler handler = new ISynchAsynchEventHandler() {
 		@Override
@@ -164,7 +148,7 @@ public class TCPSocketClientContainer extends AbstractRSAClientContainer {
 
 	// This should method be added to super class
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	void unregisterEndpoint(RSAClientRegistration r) {
+	void unregisterEndpoint(final RSAClientRegistration r) {
 		r.unregister();
 		List toNotify = null;
 		// Copy array

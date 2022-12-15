@@ -1,37 +1,28 @@
 package org.eclipse.ecf.provider.tcpsocket.server.internal;
 
-import java.util.ArrayList;
-import java.util.Dictionary;
-import java.util.List;
-import java.util.Map;
-
+import java.util.*;
 import org.eclipse.ecf.provider.tcpsocket.server.TCPSocketServerRequestExecutorCustomizer;
-import org.osgi.framework.FrameworkUtil;
-import org.osgi.framework.InvalidSyntaxException;
-import org.osgi.framework.ServiceReference;
-import org.osgi.service.component.annotations.Component;
-import org.osgi.service.component.annotations.Reference;
-import org.osgi.service.component.annotations.ReferenceCardinality;
-import org.osgi.service.component.annotations.ReferencePolicy;
+import org.osgi.framework.*;
+import org.osgi.service.component.annotations.*;
 
-@Component(immediate=true)
+@Component(immediate = true)
 public class TCPSocketServerComponent {
 
 	private static final String SERVER_ID_PROPNAME = "ecf.socket.serverid";
-	private List<ServiceReference<TCPSocketServerRequestExecutorCustomizer>> customizers = new ArrayList<ServiceReference<TCPSocketServerRequestExecutorCustomizer>>();
+	private List<ServiceReference<TCPSocketServerRequestExecutorCustomizer>> customizers = new ArrayList<>();
 	private static TCPSocketServerComponent comp;
-	
+
 	public TCPSocketServerComponent() {
 		comp = this;
 	}
-	
+
 	@Reference(cardinality = ReferenceCardinality.MULTIPLE, policy = ReferencePolicy.DYNAMIC)
 	void bindExecutorCustomizer(ServiceReference<TCPSocketServerRequestExecutorCustomizer> c) {
 		synchronized (customizers) {
 			customizers.add(c);
 		}
 	}
-	
+
 	void unbindExecutorCustomizer(ServiceReference<TCPSocketServerRequestExecutorCustomizer> c) {
 		synchronized (customizers) {
 			customizers.remove(c);
@@ -46,7 +37,7 @@ public class TCPSocketServerComponent {
 		List<ServiceReference<TCPSocketServerRequestExecutorCustomizer>> refsCopy = null;
 		ServiceReference<TCPSocketServerRequestExecutorCustomizer> resultRef = null;
 		synchronized (customizers) {
-			refsCopy = new ArrayList<ServiceReference<TCPSocketServerRequestExecutorCustomizer>>(customizers);
+			refsCopy = new ArrayList<>(customizers);
 		}
 		for (ServiceReference<TCPSocketServerRequestExecutorCustomizer> ref : refsCopy) {
 			// This looks for the TARGET_ID_FILTER_PROP on the TCPSocketRequestCustomizer
@@ -55,7 +46,7 @@ public class TCPSocketServerComponent {
 			if (o instanceof String) {
 				try {
 					Dictionary<String, String> d = FrameworkUtil.asDictionary(Map.of(SERVER_ID_PROPNAME, serverId));
-					
+
 					// Use it to create a filter...i.e
 					// "(ecf.socket.serverid=<server_id_filter_propvalue>)"
 					if (Activator.getContext().createFilter("(" + SERVER_ID_PROPNAME + "=" + ((String) o) + ")")
@@ -80,7 +71,8 @@ public class TCPSocketServerComponent {
 	}
 
 	private ServiceReference<TCPSocketServerRequestExecutorCustomizer> chooseHigherPriority(
-			ServiceReference<TCPSocketServerRequestExecutorCustomizer> first, ServiceReference<TCPSocketServerRequestExecutorCustomizer> second) {
+			ServiceReference<TCPSocketServerRequestExecutorCustomizer> first,
+			ServiceReference<TCPSocketServerRequestExecutorCustomizer> second) {
 		if (second != null) {
 			// If there is more than one, then take the one with the
 			// highest priority
