@@ -2,10 +2,11 @@ package org.eclipse.ecf.provider.tcpsocket.server.internal;
 
 import java.util.ArrayList;
 import java.util.Dictionary;
-import java.util.Hashtable;
 import java.util.List;
+import java.util.Map;
 
 import org.eclipse.ecf.provider.tcpsocket.server.TCPSocketServerRequestExecutorCustomizer;
+import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.component.annotations.Component;
@@ -47,14 +48,14 @@ public class TCPSocketServerComponent {
 		synchronized (customizers) {
 			refsCopy = new ArrayList<ServiceReference<TCPSocketServerRequestExecutorCustomizer>>(customizers);
 		}
-		Dictionary<String, String> d = new Hashtable<String, String>();
-		d.put(SERVER_ID_PROPNAME, serverId);
 		for (ServiceReference<TCPSocketServerRequestExecutorCustomizer> ref : refsCopy) {
 			// This looks for the TARGET_ID_FILTER_PROP on the TCPSocketRequestCustomizer
 			Object o = ref.getProperty(TCPSocketServerRequestExecutorCustomizer.SERVER_ID_FILTER_PROPNAME);
 			// If it's set/not null
-			if (o != null && o instanceof String) {
+			if (o instanceof String) {
 				try {
+					Dictionary<String, String> d = FrameworkUtil.asDictionary(Map.of(SERVER_ID_PROPNAME, serverId));
+					
 					// Use it to create a filter...i.e
 					// "(ecf.socket.serverid=<server_id_filter_propvalue>)"
 					if (Activator.getContext().createFilter("(" + SERVER_ID_PROPNAME + "=" + ((String) o) + ")")
