@@ -16,7 +16,7 @@ import org.osgi.service.component.annotations.*;
 @Component
 public class TCPSocketClientComponent {
 
-	private static final String TARGET_ID_PROPNAME = "ecf.socket.component.targetid";
+	private static final String TARGET_ID_PROPNAME = "ecf.socket.component.targetid"; //$NON-NLS-1$
 	private static TCPSocketClientComponent c;
 
 	private final List<ServiceReference<TCPSocketRequestCustomizer>> refs = new ArrayList<>();
@@ -58,7 +58,7 @@ public class TCPSocketClientComponent {
 
 					// Use it to create a filter...i.e
 					// "(ecf.socket.targetid=<target_id_filter_propvalue>)"
-					if (Activator.getContext().createFilter("(" + TARGET_ID_PROPNAME + "=" + ((String) o) + ")")
+					if (Activator.getContext().createFilter("(" + TARGET_ID_PROPNAME + "=" + ((String) o) + ")") //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 							// Then it looks for a match against the Dictionary d...which has name->value:
 							// ecf.socket.targetid=<container connectedid>"
 							.match(d)) {
@@ -68,7 +68,7 @@ public class TCPSocketClientComponent {
 				} catch (InvalidSyntaxException e) {
 					// should not happen, but if it does (bad ecf.socket.targetidfilter) then
 					// we will report on System.err and ignore this service instance
-					System.err.println("Could not create filter from value of ecf.socket.targetidfilter property=" + o);
+					System.err.println("Could not create filter from value of ecf.socket.targetidfilter property=" + o); //$NON-NLS-1$
 					e.printStackTrace(System.err);
 				}
 				// If no property to filter on, then we just use it

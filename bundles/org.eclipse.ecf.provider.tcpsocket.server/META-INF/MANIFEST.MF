@@ -25,5 +25,4 @@ Require-Bundle: org.eclipse.equinox.common,
 Provide-Capability: osgi.remoteserviceadmin.distribution; configs:List<String>="ecf.socket.server"; version:Version=1.1 
 DynamicImport-Package: *
 Export-Package: org.eclipse.ecf.provider.tcpsocket.server
-Service-Component: OSGI-INF/org.eclipse.ecf.provider.tcpsocket.server.internal.TCPSocketServerComponent.xml,
- OSGI-INF/org.eclipse.ecf.provider.tcpsocket.server.internal.TestTCPSocketServerRequestExecutorCustomizer.xml
+Service-Component: OSGI-INF/org.eclipse.ecf.provider.tcpsocket.server.internal.TCPSocketServerComponent.xml
