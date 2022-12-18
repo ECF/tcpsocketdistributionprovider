@@ -3,16 +3,12 @@
  * program and the accompanying materials are made available under the terms of
  * the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors: Composent, Inc. - initial API and implementation
  ******************************************************************************/
 package org.eclipse.ecf.provider.tcpsocket.client.internal;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-
+import java.util.*;
 import org.eclipse.ecf.core.ContainerTypeDescription;
 import org.eclipse.ecf.core.IContainer;
 import org.eclipse.ecf.core.identity.Namespace;
@@ -20,9 +16,7 @@ import org.eclipse.ecf.provider.tcpsocket.client.TCPSocketClientContainer;
 import org.eclipse.ecf.provider.tcpsocket.common.TCPSocketConstants;
 import org.eclipse.ecf.provider.tcpsocket.common.TCPSocketNamespace;
 import org.eclipse.ecf.remoteservice.Constants;
-import org.eclipse.ecf.remoteservice.provider.IRemoteServiceDistributionProvider;
-import org.eclipse.ecf.remoteservice.provider.RemoteServiceContainerInstantiator;
-import org.eclipse.ecf.remoteservice.provider.RemoteServiceDistributionProvider;
+import org.eclipse.ecf.remoteservice.provider.*;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 
@@ -36,10 +30,11 @@ public class Activator implements BundleActivator {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see
 	 * org.osgi.framework.BundleActivator#start(org.osgi.framework.BundleContext)
 	 */
+	@Override
 	public void start(BundleContext bundleContext) throws Exception {
 		Activator.context = bundleContext;
 
@@ -59,12 +54,13 @@ public class Activator implements BundleActivator {
 
 									@Override
 									public String[] getSupportedIntents(ContainerTypeDescription description) {
-										List<String> supportedIntents = new ArrayList<String>(
+										List<String> supportedIntents = new ArrayList<>(
 												Arrays.asList(super.getSupportedIntents(description)));
 										supportedIntents.add(Constants.OSGI_ASYNC_INTENT);
 										return supportedIntents.toArray(new String[supportedIntents.size()]);
 									}
 
+									@Override
 									public String[] getImportedConfigs(ContainerTypeDescription description,
 											String[] exporterSupportedConfigs) {
 										if (exporterSupportedConfigs == null)
@@ -86,10 +82,11 @@ public class Activator implements BundleActivator {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see
 	 * org.osgi.framework.BundleActivator#stop(org.osgi.framework.BundleContext)
 	 */
+	@Override
 	public void stop(BundleContext bundleContext) throws Exception {
 		Activator.context = null;
 	}

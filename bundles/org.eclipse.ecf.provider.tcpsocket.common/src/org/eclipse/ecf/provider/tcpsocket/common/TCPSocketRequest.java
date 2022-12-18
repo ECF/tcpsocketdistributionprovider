@@ -3,15 +3,13 @@
  * program and the accompanying materials are made available under the terms of
  * the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors: Composent, Inc. - initial API and implementation
  ******************************************************************************/
 package org.eclipse.ecf.provider.tcpsocket.common;
 
 import org.eclipse.ecf.core.identity.ID;
-import org.eclipse.ecf.provider.remoteservice.generic.RemoteCallImpl;
-import org.eclipse.ecf.provider.remoteservice.generic.Request;
-import org.eclipse.ecf.provider.remoteservice.generic.Response;
+import org.eclipse.ecf.provider.remoteservice.generic.*;
 
 public class TCPSocketRequest extends Request {
 
@@ -20,19 +18,23 @@ public class TCPSocketRequest extends Request {
 	public TCPSocketRequest(ID requestContainerID, long serviceId, RemoteCallImpl call) {
 		super(requestContainerID, serviceId, call);
 	}
-	
+
+	@Override
 	public boolean isDone() {
 		return super.isDone();
 	}
 
+	@Override
 	public Response getResponse() {
 		return super.getResponse();
 	}
-	
+
+	@Override
 	public void setResponse(Response response) {
 		super.setResponse(response);
 	}
-	
+
+	@Override
 	public void setDone(boolean done) {
 		super.setDone(done);
 	}

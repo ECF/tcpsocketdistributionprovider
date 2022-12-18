@@ -3,23 +3,14 @@
  * program and the accompanying materials are made available under the terms of
  * the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors: Composent, Inc. - initial API and implementation
  ******************************************************************************/
 package org.eclipse.ecf.provider.tcpsocket.server;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.net.InetAddress;
-import java.net.ProtocolException;
-import java.net.Socket;
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
+import java.io.*;
+import java.net.*;
+import java.util.*;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.ecf.core.ContainerCreateException;
@@ -27,50 +18,33 @@ import org.eclipse.ecf.core.identity.ID;
 import org.eclipse.ecf.core.sharedobject.SharedObjectMsg;
 import org.eclipse.ecf.core.status.SerializableStatus;
 import org.eclipse.ecf.core.util.ECFException;
-import org.eclipse.ecf.provider.comm.AsynchEvent;
-import org.eclipse.ecf.provider.comm.ConnectionEvent;
-import org.eclipse.ecf.provider.comm.DisconnectEvent;
-import org.eclipse.ecf.provider.comm.IConnection;
-import org.eclipse.ecf.provider.comm.ISynchAsynchEventHandler;
-import org.eclipse.ecf.provider.comm.SynchEvent;
-import org.eclipse.ecf.provider.comm.tcp.Client;
-import org.eclipse.ecf.provider.comm.tcp.ConnectRequestMessage;
-import org.eclipse.ecf.provider.comm.tcp.ConnectResultMessage;
-import org.eclipse.ecf.provider.comm.tcp.ISocketAcceptHandler;
-import org.eclipse.ecf.provider.comm.tcp.Server;
+import org.eclipse.ecf.provider.comm.*;
+import org.eclipse.ecf.provider.comm.tcp.*;
 import org.eclipse.ecf.provider.remoteservice.generic.RemoteCallImpl;
 import org.eclipse.ecf.provider.remoteservice.generic.Response;
-import org.eclipse.ecf.provider.tcpsocket.common.TCPSocketNamespace;
-import org.eclipse.ecf.provider.tcpsocket.common.TCPSocketRemoteServiceRegistration;
-import org.eclipse.ecf.provider.tcpsocket.common.TCPSocketRequest;
+import org.eclipse.ecf.provider.tcpsocket.common.*;
 import org.eclipse.ecf.provider.tcpsocket.server.internal.TCPSocketServerComponent;
-import org.eclipse.ecf.remoteservice.AbstractRSAContainer;
-import org.eclipse.ecf.remoteservice.IRemoteServiceCallPolicy;
-import org.eclipse.ecf.remoteservice.IRemoteServiceContainerAdapter;
-import org.eclipse.ecf.remoteservice.IRemoteServiceReference;
-import org.eclipse.ecf.remoteservice.RSARemoteServiceContainerAdapter;
+import org.eclipse.ecf.remoteservice.*;
 import org.eclipse.ecf.remoteservice.RSARemoteServiceContainerAdapter.RSARemoteServiceRegistration;
-import org.eclipse.ecf.remoteservice.RemoteServiceRegistrationImpl;
-import org.eclipse.ecf.remoteservice.RemoteServiceRegistryImpl;
 import org.eclipse.equinox.concurrent.future.IProgressRunnable;
 import org.eclipse.equinox.concurrent.future.ThreadsExecutor;
 
 public class TCPSocketServerContainer extends AbstractRSAContainer implements ISocketAcceptHandler {
 
 	private ContainerServerSocket serverSocket;
-	
-	private Map<ID, TCPRemoteServiceContainerAdapter.TCPClient> clients = new HashMap<ID, TCPRemoteServiceContainerAdapter.TCPClient>();
-	
+
+	private Map<ID, TCPRemoteServiceContainerAdapter.TCPClient> clients = new HashMap<>();
+
 	class ContainerServerSocket extends Server {
 		public ContainerServerSocket(int port, int backlog, InetAddress bindAddress) throws IOException {
 			super(null, port, backlog, bindAddress, TCPSocketServerContainer.this);
 		}
 	}
-	
+
 	TCPRemoteServiceContainerAdapter getTCPAdapter() {
 		return (TCPRemoteServiceContainerAdapter) getAdapter(IRemoteServiceContainerAdapter.class);
 	}
-	
+
 	@Override
 	public void handleAccept(Socket s) throws Exception {
 		s.setTcpNoDelay(true);
@@ -99,12 +73,13 @@ public class TCPSocketServerContainer extends AbstractRSAContainer implements IS
 	}
 
 	class TCPRemoteServiceContainerAdapter extends RSARemoteServiceContainerAdapter {
-		
+
 		boolean removeClient(ID clientID) {
 			synchronized (clients) {
 				return clients.remove(clientID) != null;
 			}
 		}
+
 		void logRemoteCallException(String string, Throwable e) {
 			// TODO Auto-generated method stub
 			System.out.println(string);
@@ -112,20 +87,28 @@ public class TCPSocketServerContainer extends AbstractRSAContainer implements IS
 		}
 
 		class TCPClient {
-			
+
 			private Client client;
-			
-			public TCPClient(final ID clientID, Socket s, ObjectInputStream ins, ObjectOutputStream outs) throws IOException {
+
+			public TCPClient(final ID clientID, Socket s, ObjectInputStream ins, ObjectOutputStream outs)
+					throws IOException {
 				client = new Client(s, ins, outs, new ISynchAsynchEventHandler() {
+					@Override
 					public Object handleSynchEvent(SynchEvent event) throws IOException {
 						return null;
 					}
+
+					@Override
 					public ID getEventHandlerID() {
 						return clientID;
 					}
+
+					@Override
 					public void handleConnectEvent(ConnectionEvent event) {
 						// nothing to do
 					}
+
+					@Override
 					public void handleDisconnectEvent(DisconnectEvent event) {
 						IConnection c = event.getConnection();
 						if (c != null) {
@@ -133,6 +116,8 @@ public class TCPSocketServerContainer extends AbstractRSAContainer implements IS
 							removeClient(clientID);
 						}
 					}
+
+					@Override
 					@SuppressWarnings({ "unchecked", "rawtypes" })
 					public void handleAsynchEvent(AsynchEvent event) throws IOException {
 						try {
@@ -142,9 +127,11 @@ public class TCPSocketServerContainer extends AbstractRSAContainer implements IS
 								TCPSocketRequest request = (TCPSocketRequest) msg.getParameters()[0];
 								RemoteServiceRegistrationImpl reg = findRegistration(request.getServiceId());
 								if (reg == null) {
-									throw new ECFException("Could not find remote service id="+request.getServiceId());
+									throw new ECFException(
+											"Could not find remote service id=" + request.getServiceId());
 								}
 								getExecutor().execute(new IProgressRunnable() {
+									@Override
 									public Object run(IProgressMonitor monitor) throws Exception {
 										final RemoteCallImpl call = request.getCall();
 										long requestId = request.getRequestId();
@@ -155,22 +142,28 @@ public class TCPSocketServerContainer extends AbstractRSAContainer implements IS
 											// If it's set, then check remote call *before* actual invocation
 											if (callPolicy != null)
 												callPolicy.checkRemoteCall(request.getRequestContainerID(), reg, call);
-											response = createTCPSocketServerRequestExecutor(reg).execute(request,reg);
+											response = createTCPSocketServerRequestExecutor(reg).execute(request, reg);
 										} catch (Exception | NoClassDefFoundError e) {
-											response = new Response(requestId, new SerializableStatus(0, "org.eclipse.ecf.provider.tcpsocket.server", null, e).getException());
-											logRemoteCallException("Exception invoking remote service for request=" + request, e); //$NON-NLS-1$
+											response = new Response(requestId,
+													new SerializableStatus(0,
+															"org.eclipse.ecf.provider.tcpsocket.server", null, e)
+															.getException());
+											logRemoteCallException(
+													"Exception invoking remote service for request=" + request, e); //$NON-NLS-1$
 										}
 										// Then send response message back to client
-										client.sendAsynch(clientID, SharedObjectMsg.createMsg("invokeResponse",response));
+										client.sendAsynch(clientID,
+												SharedObjectMsg.createMsg("invokeResponse", response));
 										return null;
 									}
 
 								}, new NullProgressMonitor());
 							} else {
-								throw new ProtocolException("Unsupported msg="+msgName);
+								throw new ProtocolException("Unsupported msg=" + msgName);
 							}
 						} catch (Exception e) {
-							throw new IOException("Exception handling async event from clientID="+client.getLocalID());
+							throw new IOException(
+									"Exception handling async event from clientID=" + client.getLocalID());
 						}
 					}
 				});
@@ -181,22 +174,24 @@ public class TCPSocketServerContainer extends AbstractRSAContainer implements IS
 					outs.flush();
 				}
 			}
-			
+
 			void sendAddRegistration(RSARemoteServiceRegistration reg) {
 				if (client != null && client.isConnected()) {
 					try {
-						client.sendAsynch(client.getLocalID(), SharedObjectMsg.createMsg("addRegistration",new TCPSocketRemoteServiceRegistration(reg)));
+						client.sendAsynch(client.getLocalID(), SharedObjectMsg.createMsg("addRegistration",
+								new TCPSocketRemoteServiceRegistration(reg)));
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
 				}
 			}
+
 			void start() {
 				if (client != null && !client.isStarted()) {
 					client.start();
 				}
 			}
-			
+
 			void stop() {
 				if (client != null && client.isConnected()) {
 					client.disconnect();
@@ -206,14 +201,15 @@ public class TCPSocketServerContainer extends AbstractRSAContainer implements IS
 			void sendRemoveRegistration(RSARemoteServiceRegistration reg) {
 				if (client != null && client.isConnected()) {
 					try {
-						client.sendAsynch(client.getLocalID(), SharedObjectMsg.createMsg("removeRegistration",new TCPSocketRemoteServiceRegistration(reg)));
+						client.sendAsynch(client.getLocalID(), SharedObjectMsg.createMsg("removeRegistration",
+								new TCPSocketRemoteServiceRegistration(reg)));
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
 				}
 			}
 		}
-		
+
 		class TCPRemoteServiceRegistryImpl extends RemoteServiceRegistryImpl {
 
 			private static final long serialVersionUID = -4893493364363506511L;
@@ -225,23 +221,23 @@ public class TCPSocketServerContainer extends AbstractRSAContainer implements IS
 			List<TCPSocketRemoteServiceRegistration> getAllRegistrations() {
 				synchronized (this) {
 					RemoteServiceRegistrationImpl[] impls = getRegistrations();
-					List<TCPSocketRemoteServiceRegistration> result = new ArrayList<TCPSocketRemoteServiceRegistration>();
-					for (int i = 0; i < impls.length; i++) {
-						result.add(new TCPSocketRemoteServiceRegistration((RSARemoteServiceRegistration) impls[i]));
+					List<TCPSocketRemoteServiceRegistration> result = new ArrayList<>();
+					for (RemoteServiceRegistrationImpl impl : impls) {
+						result.add(new TCPSocketRemoteServiceRegistration((RSARemoteServiceRegistration) impl));
 					}
 					return result;
 				}
 			}
 		}
-		
+
 		public TCPRemoteServiceContainerAdapter(AbstractRSAContainer container) {
 			super(container);
 			setRegistry(new TCPRemoteServiceRegistryImpl(container.getID()));
 			setExecutor(new ThreadsExecutor());
 		}
-		
+
 		RemoteServiceRegistrationImpl findRegistration(long rsvcId) {
-			for(IRemoteServiceReference ref: getRegistry().lookupServiceReferences()) {
+			for (IRemoteServiceReference ref : getRegistry().lookupServiceReferences()) {
 				if (ref.getID().getContainerRelativeID() == rsvcId) {
 					return getRemoteServiceRegistrationImpl(ref);
 				}
@@ -249,7 +245,8 @@ public class TCPSocketServerContainer extends AbstractRSAContainer implements IS
 			return null;
 		}
 	}
-	
+
+	@Override
 	protected RSARemoteServiceContainerAdapter createContainerAdapter() {
 		return new TCPRemoteServiceContainerAdapter(this);
 	}
@@ -270,24 +267,26 @@ public class TCPSocketServerContainer extends AbstractRSAContainer implements IS
 	}
 
 	TCPSockerServerRequestExecutor createTCPSocketServerRequestExecutor(RemoteServiceRegistrationImpl registration) {
-		TCPSocketServerRequestExecutorCustomizer customizer = TCPSocketServerComponent.getCustomizer(registration.getContainerID().getName());
+		TCPSocketServerRequestExecutorCustomizer customizer = TCPSocketServerComponent
+				.getCustomizer(registration.getContainerID().getName());
 		if (customizer != null) {
 			return customizer.createRequestExecutor();
 		} else {
 			return new TCPSockerServerRequestExecutor();
 		}
 	}
-	
+
 	@Override
 	public void dispose() {
 		if (this.serverSocket != null) {
 			try {
 				this.serverSocket.close();
-			} catch (IOException e) {}
+			} catch (IOException e) {
+			}
 			this.serverSocket = null;
 		}
 		synchronized (clients) {
-			clients.forEach((i,c) -> c.stop());
+			clients.forEach((i, c) -> c.stop());
 			clients.clear();
 		}
 		super.dispose();
