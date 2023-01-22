@@ -39,6 +39,9 @@ public class TCPSocketClientContainer extends AbstractRSAClientContainer {
 	private final List<TCPSocketRequest> requests = new ArrayList<>();
 
 	ISynchAsynchEventHandler handler = new ISynchAsynchEventHandler() {
+		/**
+		 * @throws IOException
+		 */
 		@Override
 		public Object handleSynchEvent(SynchEvent event) throws IOException {
 			return null;
@@ -49,6 +52,7 @@ public class TCPSocketClientContainer extends AbstractRSAClientContainer {
 			return getID();
 		}
 
+		@SuppressWarnings("synthetic-access")
 		@Override
 		public void handleDisconnectEvent(DisconnectEvent event) {
 			synchronized (connectLock) {
@@ -58,8 +62,13 @@ public class TCPSocketClientContainer extends AbstractRSAClientContainer {
 
 		@Override
 		public void handleConnectEvent(ConnectionEvent event) {
+			// nothing to do
 		}
 
+		/**
+		 * @throws IOException
+		 */
+		@SuppressWarnings("synthetic-access")
 		@Override
 		public void handleAsynchEvent(AsynchEvent event) throws IOException {
 			try {
@@ -68,7 +77,7 @@ public class TCPSocketClientContainer extends AbstractRSAClientContainer {
 				// First type of message/msgName handled by tcp socket client is
 				// 'invokeResponse'
 				// This is received in response to a remote 'invoke method' request
-				if ("invokeResponse".equals(msgName)) {
+				if ("invokeResponse".equals(msgName)) { //$NON-NLS-1$
 					Response response = (Response) msg.getParameters()[0];
 					long requestId = response.getRequestId();
 					TCPSocketRequest request = null;
@@ -85,7 +94,7 @@ public class TCPSocketClientContainer extends AbstractRSAClientContainer {
 					}
 					// Second is 'addRegistration' in case server dynamically adds/register a
 					// another remote service registration
-				} else if ("addRegistration".equals(msgName)) {
+				} else if ("addRegistration".equals(msgName)) { //$NON-NLS-1$
 					TCPSocketRemoteServiceRegistration reg = (TCPSocketRemoteServiceRegistration) msg
 							.getParameters()[0];
 					if (reg != null) {
@@ -93,7 +102,7 @@ public class TCPSocketClientContainer extends AbstractRSAClientContainer {
 					}
 					// Finally is 'removeRegistration' if server dynamically unregisters a remote
 					// service
-				} else if ("removeRegistration".equals(msgName)) {
+				} else if ("removeRegistration".equals(msgName)) { //$NON-NLS-1$
 					TCPSocketRemoteServiceRegistration reg = (TCPSocketRemoteServiceRegistration) msg
 							.getParameters()[0];
 					if (reg != null) {
@@ -195,7 +204,7 @@ public class TCPSocketClientContainer extends AbstractRSAClientContainer {
 					if (result instanceof SharedObjectMsg) {
 						SharedObjectMsg msg = (SharedObjectMsg) result;
 						String methodName = msg.getMethod();
-						if (methodName.equals("connectResponse")) {
+						if (methodName.equals("connectResponse")) { //$NON-NLS-1$
 							@SuppressWarnings("unchecked")
 							List<TCPSocketRemoteServiceRegistration> serviceRegistrations = (List<TCPSocketRemoteServiceRegistration>) msg
 									.getParameters()[0];
@@ -206,18 +215,18 @@ public class TCPSocketClientContainer extends AbstractRSAClientContainer {
 					} else if (result instanceof Exception) {
 						throw (Exception) result;
 					} else
-						throw new ProtocolException("Bad server connect response");
+						throw new ProtocolException("Bad server connect response"); //$NON-NLS-1$
 					this.client.start();
 				} catch (Exception e) {
 					client.disconnect();
 					this.connectedID = null;
 					this.client = null;
-					throw new ContainerConnectException("Cannot connect to targetID=" + targetID.getName(), e);
+					throw new ContainerConnectException("Cannot connect to targetID=" + targetID.getName(), e); //$NON-NLS-1$
 				}
 				fireContainerEvent(new ContainerConnectedEvent(containerID, targetID));
 			} else if (!connectedID.equals(targetID)) {
 				throw new ContainerConnectException(
-						"Container already connected to targetID=" + this.connectedID.getName());
+						"Container already connected to targetID=" + this.connectedID.getName()); //$NON-NLS-1$
 			}
 		}
 	}
@@ -244,14 +253,14 @@ public class TCPSocketClientContainer extends AbstractRSAClientContainer {
 
 			Object invokeRemote(String methodName, Object[] args, long timeout) throws Exception {
 				if (client == null || !client.isConnected()) {
-					return new ConnectException("Remote service not connected");
+					return new ConnectException("Remote service not connected"); //$NON-NLS-1$
 				}
 				RemoteServiceClientRegistration reg = getRegistration();
 				TCPSocketRequest r = createRequest(reg,
 						RemoteCallImpl.createRemoteCall(null, methodName, args, timeout));
 				try {
 					requests.add(r);
-					client.sendAsynch(reg.getContainerID(), SharedObjectMsg.createMsg("invokeRequest", r));
+					client.sendAsynch(reg.getContainerID(), SharedObjectMsg.createMsg("invokeRequest", r)); //$NON-NLS-1$
 				} catch (IOException e) {
 					requests.remove(r);
 					throw e;

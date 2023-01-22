@@ -52,10 +52,10 @@ public class Activator implements BundleActivator {
 												TCPSocketConstants.HOSTNAME_PROP, TCPSocketConstants.HOSTNAME_DEFAULT);
 										URI uri = null;
 										try {
-											uri = new URI("tcp://" + hostname + ":" + String.valueOf(port));
+											uri = new URI("tcp://" + hostname + ":" + String.valueOf(port)); //$NON-NLS-1$ //$NON-NLS-2$
 										} catch (URISyntaxException e) {
-											throw new ContainerCreateException("Could not create uri.  hostname="
-													+ hostname + ",port=" + String.valueOf(port), e);
+											throw new ContainerCreateException("Could not create uri.  hostname=" //$NON-NLS-1$
+													+ hostname + ",port=" + String.valueOf(port), e); //$NON-NLS-1$
 										}
 										checkOSGIIntents(description, uri, parameters);
 										String bindAddressStr = getParameterValue(parameters,
@@ -66,7 +66,7 @@ public class Activator implements BundleActivator {
 												bindAddress = InetAddress.getByName(bindAddressStr);
 											} catch (UnknownHostException e) {
 												throw new ContainerCreateException(
-														"Could not create bindAddress from bindAddressStr="
+														"Could not create bindAddress from bindAddressStr=" //$NON-NLS-1$
 																+ bindAddressStr,
 														e);
 											}

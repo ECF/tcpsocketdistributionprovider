@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scr:component xmlns:scr="http://www.osgi.org/xmlns/scr/v1.3.0" activate="onActivate" deactivate="onDeactivate" name="org.eclipse.ecf.provider.tcpsocket.examples.service.consumer.ServiceConsumer">
+   <reference cardinality="1..1" field="hello" interface="org.eclipse.ecf.provider.tcpsocket.examples.service.api.IHello" name="hello" policy="dynamic"/>
+   <implementation class="org.eclipse.ecf.provider.tcpsocket.examples.service.consumer.ServiceConsumer"/>
+</scr:component>

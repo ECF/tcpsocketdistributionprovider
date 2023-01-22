@@ -33,7 +33,7 @@ public class TCPSocketServerContainer extends AbstractRSAContainer implements IS
 
 	private ContainerServerSocket serverSocket;
 
-	private Map<ID, TCPRemoteServiceContainerAdapter.TCPClient> clients = new HashMap<>();
+	private final Map<ID, TCPRemoteServiceContainerAdapter.TCPClient> clients = new HashMap<>();
 
 	class ContainerServerSocket extends Server {
 		public ContainerServerSocket(int port, int backlog, InetAddress bindAddress) throws IOException {
@@ -68,7 +68,7 @@ public class TCPSocketServerContainer extends AbstractRSAContainer implements IS
 		try {
 			this.serverSocket = new ContainerServerSocket(uri.getPort(), backlog, bindAddress);
 		} catch (IOException e) {
-			throw new ContainerCreateException("Could not open container server socket for tcpsocket server", e);
+			throw new ContainerCreateException("Could not open container server socket for tcpsocket server", e); //$NON-NLS-1$
 		}
 	}
 
@@ -90,9 +90,13 @@ public class TCPSocketServerContainer extends AbstractRSAContainer implements IS
 
 			private Client client;
 
+			@SuppressWarnings("synthetic-access")
 			public TCPClient(final ID clientID, Socket s, ObjectInputStream ins, ObjectOutputStream outs)
 					throws IOException {
 				client = new Client(s, ins, outs, new ISynchAsynchEventHandler() {
+					/**
+					 * @throws IOException
+					 */
 					@Override
 					public Object handleSynchEvent(SynchEvent event) throws IOException {
 						return null;
@@ -123,12 +127,12 @@ public class TCPSocketServerContainer extends AbstractRSAContainer implements IS
 						try {
 							SharedObjectMsg msg = (SharedObjectMsg) event.getData();
 							String msgName = msg.getMethod();
-							if (msgName.equals("invokeRequest")) {
+							if (msgName.equals("invokeRequest")) { //$NON-NLS-1$
 								TCPSocketRequest request = (TCPSocketRequest) msg.getParameters()[0];
 								RemoteServiceRegistrationImpl reg = findRegistration(request.getServiceId());
 								if (reg == null) {
 									throw new ECFException(
-											"Could not find remote service id=" + request.getServiceId());
+											"Could not find remote service id=" + request.getServiceId()); //$NON-NLS-1$
 								}
 								getExecutor().execute(new IProgressRunnable() {
 									@Override
@@ -146,30 +150,30 @@ public class TCPSocketServerContainer extends AbstractRSAContainer implements IS
 										} catch (Exception | NoClassDefFoundError e) {
 											response = new Response(requestId,
 													new SerializableStatus(0,
-															"org.eclipse.ecf.provider.tcpsocket.server", null, e)
+															"org.eclipse.ecf.provider.tcpsocket.server", null, e) //$NON-NLS-1$
 															.getException());
 											logRemoteCallException(
 													"Exception invoking remote service for request=" + request, e); //$NON-NLS-1$
 										}
 										// Then send response message back to client
 										client.sendAsynch(clientID,
-												SharedObjectMsg.createMsg("invokeResponse", response));
+												SharedObjectMsg.createMsg("invokeResponse", response)); //$NON-NLS-1$
 										return null;
 									}
 
 								}, new NullProgressMonitor());
 							} else {
-								throw new ProtocolException("Unsupported msg=" + msgName);
+								throw new ProtocolException("Unsupported msg=" + msgName); //$NON-NLS-1$
 							}
 						} catch (Exception e) {
 							throw new IOException(
-									"Exception handling async event from clientID=" + client.getLocalID());
+									"Exception handling async event from clientID=" + client.getLocalID()); //$NON-NLS-1$
 						}
 					}
 				});
 				synchronized (client.getOutputStreamLock()) {
 					// Create connect response wrapper and send it back
-					outs.writeObject(new ConnectResultMessage(SharedObjectMsg.createMsg("connectResponse",
+					outs.writeObject(new ConnectResultMessage(SharedObjectMsg.createMsg("connectResponse", //$NON-NLS-1$
 							((TCPRemoteServiceRegistryImpl) registry).getAllRegistrations())));
 					outs.flush();
 				}
@@ -178,7 +182,7 @@ public class TCPSocketServerContainer extends AbstractRSAContainer implements IS
 			void sendAddRegistration(RSARemoteServiceRegistration reg) {
 				if (client != null && client.isConnected()) {
 					try {
-						client.sendAsynch(client.getLocalID(), SharedObjectMsg.createMsg("addRegistration",
+						client.sendAsynch(client.getLocalID(), SharedObjectMsg.createMsg("addRegistration", //$NON-NLS-1$
 								new TCPSocketRemoteServiceRegistration(reg)));
 					} catch (Exception e) {
 						e.printStackTrace();
@@ -201,7 +205,7 @@ public class TCPSocketServerContainer extends AbstractRSAContainer implements IS
 			void sendRemoveRegistration(RSARemoteServiceRegistration reg) {
 				if (client != null && client.isConnected()) {
 					try {
-						client.sendAsynch(client.getLocalID(), SharedObjectMsg.createMsg("removeRegistration",
+						client.sendAsynch(client.getLocalID(), SharedObjectMsg.createMsg("removeRegistration", //$NON-NLS-1$
 								new TCPSocketRemoteServiceRegistration(reg)));
 					} catch (Exception e) {
 						e.printStackTrace();
@@ -271,9 +275,8 @@ public class TCPSocketServerContainer extends AbstractRSAContainer implements IS
 				.getCustomizer(registration.getContainerID().getName());
 		if (customizer != null) {
 			return customizer.createRequestExecutor();
-		} else {
-			return new TCPSockerServerRequestExecutor();
 		}
+		return new TCPSockerServerRequestExecutor();
 	}
 
 	@Override
@@ -282,6 +285,8 @@ public class TCPSocketServerContainer extends AbstractRSAContainer implements IS
 			try {
 				this.serverSocket.close();
 			} catch (IOException e) {
+				// should not happen
+				e.printStackTrace();
 			}
 			this.serverSocket = null;
 		}

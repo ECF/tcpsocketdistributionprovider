@@ -14,7 +14,7 @@ import org.eclipse.ecf.provider.tcpsocket.common.TCPSocketRequest;
 
 public interface TCPSocketRequestCustomizer {
 
-	public static final String TARGET_ID_FILTER_PROPNAME = "ecf.socket.targetidfilter";
+	public static final String TARGET_ID_FILTER_PROPNAME = "ecf.socket.targetidfilter"; //$NON-NLS-1$
 
 	TCPSocketRequest createRequest(ID requestContainerID, long serviceId, RemoteCallImpl call);
 

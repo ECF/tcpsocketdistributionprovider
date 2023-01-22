@@ -19,7 +19,7 @@ public class TCPSocketNamespace extends URIIDNamespace {
 	public static TCPSocketNamespace INSTANCE;
 
 	public TCPSocketNamespace() {
-		super(TCPSocketConstants.NAMESPACE_NAME, "TCP SocketNamespace");
+		super(TCPSocketConstants.NAMESPACE_NAME, "TCP SocketNamespace"); //$NON-NLS-1$
 		INSTANCE = this;
 	}
 
@@ -29,7 +29,7 @@ public class TCPSocketNamespace extends URIIDNamespace {
 
 	@Override
 	public String getScheme() {
-		return "tcp";
+		return "tcp"; //$NON-NLS-1$
 	}
 
 	public static ID createServerID(URI uri) {
@@ -37,7 +37,7 @@ public class TCPSocketNamespace extends URIIDNamespace {
 	}
 
 	public static ID createClientID() {
-		return getInstance().createInstance(new Object[] { "uuid:" + UUID.randomUUID().toString() });
+		return getInstance().createInstance(new Object[] { "uuid:" + UUID.randomUUID().toString() }); //$NON-NLS-1$
 	}
 
 	@Override

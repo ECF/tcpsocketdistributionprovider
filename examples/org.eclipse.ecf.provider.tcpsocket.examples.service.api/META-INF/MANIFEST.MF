@@ -1,0 +1,12 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: ECF TCP Socket Example Service API
+Bundle-SymbolicName: org.eclipse.ecf.provider.tcpsocket.examples.service.api;singleton:=true
+Bundle-Version: 1.0.1.qualifier
+Bundle-Vendor: Eclipse.org - ECF
+Automatic-Module-Name: org.eclipse.ecf.provider.tcpsocket.examples.service.api
+Bundle-RequiredExecutionEnvironment: JavaSE-11
+Import-Package: org.eclipse.ecf.core.identity;version="3.3.0",
+ org.eclipse.ecf.provider.remoteservice.generic;version="4.0.0",
+ org.eclipse.ecf.provider.tcpsocket.common
+Export-Package: org.eclipse.ecf.provider.tcpsocket.examples.service.api;version="1.0.0"

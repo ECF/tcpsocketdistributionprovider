@@ -42,6 +42,6 @@ public class TCPSockerServerRequestExecutor {
 
 	protected Response createErrorResponse(TCPSocketRequest request, Throwable e) {
 		return new Response(request.getRequestId(),
-				new SerializableStatus(0, "org.eclipse.ecf.provider.tcpsocket.server", null, e).getException());
+				new SerializableStatus(0, "org.eclipse.ecf.provider.tcpsocket.server", null, e).getException()); //$NON-NLS-1$
 	}
 }

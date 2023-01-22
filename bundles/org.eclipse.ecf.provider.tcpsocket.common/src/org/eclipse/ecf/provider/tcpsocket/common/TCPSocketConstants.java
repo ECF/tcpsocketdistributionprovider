@@ -10,14 +10,14 @@ package org.eclipse.ecf.provider.tcpsocket.common;
 
 public interface TCPSocketConstants {
 
-	String NAMESPACE_NAME = "ecf.namespace.socket";
-	String SERVER_PROVIDER_CONFIG_TYPE = "ecf.socket.server";
-	String CLIENT_PROVIDER_CONFIG_TYPE = "ecf.socket.client";
-	String HOSTNAME_PROP = "hostname";
-	String HOSTNAME_DEFAULT = "localhost";
-	String PORT_PROP = "port";
+	String NAMESPACE_NAME = "ecf.namespace.socket"; //$NON-NLS-1$
+	String SERVER_PROVIDER_CONFIG_TYPE = "ecf.socket.server"; //$NON-NLS-1$
+	String CLIENT_PROVIDER_CONFIG_TYPE = "ecf.socket.client"; //$NON-NLS-1$
+	String HOSTNAME_PROP = "hostname"; //$NON-NLS-1$
+	String HOSTNAME_DEFAULT = "localhost"; //$NON-NLS-1$
+	String PORT_PROP = "port"; //$NON-NLS-1$
 	int PORT_PROP_DEFAULT = 3000;
-	String BIND_ADDRESS_PROP = "bindAddress";
-	String BACKLOG_PROP = "backlog";
+	String BIND_ADDRESS_PROP = "bindAddress"; //$NON-NLS-1$
+	String BACKLOG_PROP = "backlog"; //$NON-NLS-1$
 	int BACKLOG_DEFAULT = 50;
 }

@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: ECF TCP Socket Server
 Bundle-SymbolicName: org.eclipse.ecf.provider.tcpsocket.server
-Bundle-Version: 1.3.0.qualifier
+Bundle-Version: 1.4.0.qualifier
 Bundle-Activator: org.eclipse.ecf.provider.tcpsocket.server.internal.Activator
 Bundle-Vendor: Eclipse.org - ECF
 Bundle-RequiredExecutionEnvironment: JavaSE-11
@@ -24,5 +24,6 @@ Require-Bundle: org.eclipse.equinox.common,
  org.eclipse.ecf
 Provide-Capability: osgi.remoteserviceadmin.distribution; configs:List<String>="ecf.socket.server"; version:Version=1.1 
 DynamicImport-Package: *
-Export-Package: org.eclipse.ecf.provider.tcpsocket.server
+Export-Package: org.eclipse.ecf.provider.tcpsocket.server,
+ org.eclipse.ecf.provider.tcpsocket.server.internal
 Service-Component: OSGI-INF/org.eclipse.ecf.provider.tcpsocket.server.internal.TCPSocketServerComponent.xml

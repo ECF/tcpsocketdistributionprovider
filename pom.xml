@@ -85,6 +85,9 @@
     <module>bundles/org.eclipse.ecf.provider.tcpsocket.common</module>
     <module>bundles/org.eclipse.ecf.provider.tcpsocket.server</module>
     <module>bundles/org.eclipse.ecf.provider.tcpsocket.client</module>
+    <module>examples/org.eclipse.ecf.provider.tcpsocket.examples.service.api</module>
+    <module>examples/org.eclipse.ecf.provider.tcpsocket.examples.service.provider</module>
+    <module>examples/org.eclipse.ecf.provider.tcpsocket.examples.service.consumer</module>
   </modules>
 
   <build>

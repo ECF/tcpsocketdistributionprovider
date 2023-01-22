@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scr:component xmlns:scr="http://www.osgi.org/xmlns/scr/v1.3.0" activate="activate" deactivate="deactivate" immediate="true" name="org.eclipse.ecf.provider.tcpsocket.examples.service.consumer.ServiceImporter">
+   <reference cardinality="1..1" field="containerManager" interface="org.eclipse.ecf.core.IContainerManager" name="containerManager" policy="dynamic"/>
+   <reference cardinality="1..1" field="remoteServiceAdmin" interface="org.osgi.service.remoteserviceadmin.RemoteServiceAdmin" name="remoteServiceAdmin" policy="dynamic"/>
+   <implementation class="org.eclipse.ecf.provider.tcpsocket.examples.service.consumer.ServiceImporter"/>
+</scr:component>
