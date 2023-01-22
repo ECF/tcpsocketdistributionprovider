@@ -1,7 +1,7 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: ECF TCP Socket Provider Example Service Provider
-Bundle-SymbolicName: org.eclipse.ecf.provider.tcpsocket.examples.service.provider
+Bundle-SymbolicName: org.eclipse.ecf.provider.tcpsocket.examples.service.provider;singleton:=true
 Bundle-Version: 1.0.1.qualifier
 Bundle-Vendor: Eclipse.org - ECF
 Automatic-Module-Name: org.eclipse.ecf.provider.tcpsocket.examples.service.provider
