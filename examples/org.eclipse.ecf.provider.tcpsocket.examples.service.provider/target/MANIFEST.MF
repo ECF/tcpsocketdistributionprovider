@@ -1,0 +1,26 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: ECF TCP Socket Provider Example Service Provider
+Bundle-SymbolicName: org.eclipse.ecf.provider.tcpsocket.examples.service
+ .provider
+Bundle-Version: 1.0.0.v20230122-0558
+Bundle-Vendor: Eclipse.org - ECF
+Automatic-Module-Name: org.eclipse.ecf.provider.tcpsocket.examples.servi
+ ce.provider
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Import-Package: org.eclipse.ecf.provider.remoteservice.generic;version="
+ 4.0.0",org.eclipse.ecf.provider.tcpsocket.common;version="1.0.0",org.ec
+ lipse.ecf.provider.tcpsocket.examples.service.api;version="1.0.0",org.e
+ clipse.ecf.provider.tcpsocket.server,org.eclipse.ecf.provider.tcpsocket
+ .server.internal,org.eclipse.ecf.remoteservice;version="7.4.0",org.osgi
+ .service.component.annotations;version="1.2.0";resolution:=optional,org
+ .slf4j;version="1.7.30"
+Bundle-ActivationPolicy: lazy
+Service-Component: OSGI-INF/org.eclipse.ecf.provider.tcpsocket.examples.
+ service.provider.ExampleServerRequestExecutor.xml,OSGI-INF/org.eclipse.
+ ecf.provider.tcpsocket.examples.service.provider.HelloService.xml
+Eclipse-SourceReferences: scm:git:https://github.com/ECF/tcpsocketdistri
+ butionprovider/examples/org.eclipse.ecf.provider.tcpsocket.examples.ser
+ vice.provider;path="examples/org.eclipse.ecf.provider.tcpsocket.example
+ s.service.provider";commitId=1c279e97365ae74c6db521655c64a55ff390dc07
+
