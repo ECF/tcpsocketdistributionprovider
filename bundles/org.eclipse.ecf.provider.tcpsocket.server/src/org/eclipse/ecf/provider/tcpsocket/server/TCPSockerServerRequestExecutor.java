@@ -1,3 +1,11 @@
+/*******************************************************************************
+ * Copyright (c) 2022 Composent, Inc. and others. All rights reserved. This
+ * program and the accompanying materials are made available under the terms of
+ * the Eclipse Public License v1.0 which accompanies this distribution, and is
+ * available at http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Contributors: Composent, Inc. - initial API and implementation
+ ******************************************************************************/
 package org.eclipse.ecf.provider.tcpsocket.server;
 
 import java.lang.reflect.Method;
@@ -11,7 +19,7 @@ import org.eclipse.ecf.remoteservice.RemoteServiceRegistrationImpl;
 import org.eclipse.ecf.remoteservice.asyncproxy.AsyncReturnUtil;
 import org.eclipse.ecf.remoteservice.util.AsyncUtil;
 
-public class TCPSockerServerRequestExecutor {
+public class TCPSockerServerRequestExecutor implements TCPSocketServerRequestExecutorCustomizer {
 
 	public Response execute(TCPSocketRequest request, RemoteServiceRegistrationImpl reg) {
 		long requestId = request.getRequestId();
@@ -44,4 +52,10 @@ public class TCPSockerServerRequestExecutor {
 		return new Response(request.getRequestId(),
 				new SerializableStatus(0, "org.eclipse.ecf.provider.tcpsocket.server", null, e).getException()); //$NON-NLS-1$
 	}
+
+	@Override
+	public TCPSockerServerRequestExecutor createRequestExecutor() {
+		return this;
+	}
+
 }

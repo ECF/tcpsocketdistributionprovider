@@ -8,8 +8,8 @@
  ******************************************************************************/
 package org.eclipse.ecf.provider.tcpsocket.server;
 
-public interface TCPSocketServerRequestExecutorCustomizer {
+public interface TCPSocketServerConstants {
 
-	TCPSockerServerRequestExecutor createRequestExecutor();
+	public static final String SERVER_ID_FILTER_PROPNAME = "ecf.tcpsocket.serveridfilter"; //$NON-NLS-1$
 
 }

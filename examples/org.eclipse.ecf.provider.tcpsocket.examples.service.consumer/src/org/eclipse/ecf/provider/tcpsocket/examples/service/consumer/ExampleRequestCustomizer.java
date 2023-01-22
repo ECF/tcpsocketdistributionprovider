@@ -11,14 +11,14 @@ package org.eclipse.ecf.provider.tcpsocket.examples.service.consumer;
 
 import org.eclipse.ecf.core.identity.ID;
 import org.eclipse.ecf.provider.remoteservice.generic.RemoteCallImpl;
+import org.eclipse.ecf.provider.tcpsocket.client.TCPSocketClientConstants;
 import org.eclipse.ecf.provider.tcpsocket.client.TCPSocketRequestCustomizer;
 import org.eclipse.ecf.provider.tcpsocket.common.TCPSocketRequest;
+import org.eclipse.ecf.provider.tcpsocket.examples.service.api.ExampleRequest;
 import org.osgi.service.component.annotations.Component;
 
-import org.eclipse.ecf.provider.tcpsocket.examples.service.api.ExampleRequest;
-
-@Component
-public class ExampleRequestCustomizer implements TCPSocketRequestCustomizer{
+@Component(property = { TCPSocketClientConstants.TARGET_SERVER_ID_FILTER_PROPNAME + "=localhost*" })
+public class ExampleRequestCustomizer implements TCPSocketRequestCustomizer {
 
 	@Override
 	public TCPSocketRequest createRequest(ID requestContainerID, long serviceId, RemoteCallImpl call) {

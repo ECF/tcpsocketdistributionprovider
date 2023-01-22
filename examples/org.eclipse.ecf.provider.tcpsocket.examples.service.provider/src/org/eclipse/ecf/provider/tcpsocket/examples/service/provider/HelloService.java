@@ -13,17 +13,14 @@ import org.eclipse.ecf.provider.tcpsocket.common.TCPSocketConstants;
 import org.eclipse.ecf.provider.tcpsocket.examples.service.api.IHello;
 import org.osgi.service.component.annotations.Component;
 
-@Component(immediate = true,property = {
-		"my.id=myservice",
-		"service.exported.interfaces=*",
-		"service.exported.configs=" + TCPSocketConstants.SERVER_PROVIDER_CONFIG_TYPE
-		 })
+@Component(immediate = true, property = { "my.id=myservice", "service.exported.interfaces=*",
+		"service.exported.configs=" + TCPSocketConstants.SERVER_PROVIDER_CONFIG_TYPE })
 public class HelloService implements IHello {
 
 	public HelloService() {
 		System.err.println();
 	}
-	
+
 	@Override
 	public void sayHello() {
 		System.err.println("Hello called from " + UserManager.getUser());

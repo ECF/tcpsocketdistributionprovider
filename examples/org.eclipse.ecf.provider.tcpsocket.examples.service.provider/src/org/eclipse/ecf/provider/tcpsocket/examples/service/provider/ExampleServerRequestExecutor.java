@@ -13,34 +13,33 @@ import org.eclipse.ecf.provider.remoteservice.generic.Response;
 import org.eclipse.ecf.provider.tcpsocket.common.TCPSocketRequest;
 import org.eclipse.ecf.provider.tcpsocket.examples.service.api.ExampleRequest;
 import org.eclipse.ecf.provider.tcpsocket.server.TCPSockerServerRequestExecutor;
+import org.eclipse.ecf.provider.tcpsocket.server.TCPSocketServerConstants;
 import org.eclipse.ecf.provider.tcpsocket.server.TCPSocketServerRequestExecutorCustomizer;
 import org.eclipse.ecf.remoteservice.RemoteServiceRegistrationImpl;
 import org.osgi.service.component.annotations.Component;
 import org.slf4j.MDC;
 import org.slf4j.MDC.MDCCloseable;
 
-@Component
-public class ExampleServerRequestExecutor extends TCPSockerServerRequestExecutor implements TCPSocketServerRequestExecutorCustomizer{
+@Component(property = { TCPSocketServerConstants.SERVER_ID_FILTER_PROPNAME + "=localhost*" })
+public class ExampleServerRequestExecutor extends TCPSockerServerRequestExecutor
+		implements TCPSocketServerRequestExecutorCustomizer {
 
 	@Override
 	public Response execute(TCPSocketRequest request, RemoteServiceRegistrationImpl reg) {
-		if(request instanceof ExampleRequest) {
+		if (request instanceof ExampleRequest) {
 			ExampleRequest exampleRequest = (ExampleRequest) request;
-			
-			//with that one could configure SESSION_NAME variable in Logger configuration to log the calling username
+
+			// with that one could configure SESSION_NAME variable in Logger configuration
+			// to log the calling username
 			try (MDCCloseable closeable = MDC.putCloseable("SESSION_NAME", exampleRequest.getUsername())) {
 				UserManager.setUser(exampleRequest.getUsername());
 				return super.execute(exampleRequest, reg);
 			} finally {
 				UserManager.setUser(null);
 			}
-			
-		} else throw new IllegalStateException();
-	}
 
-	@Override
-	public TCPSockerServerRequestExecutor createRequestExecutor() {
-		return this;
+		} else
+			throw new IllegalStateException();
 	}
 
 }

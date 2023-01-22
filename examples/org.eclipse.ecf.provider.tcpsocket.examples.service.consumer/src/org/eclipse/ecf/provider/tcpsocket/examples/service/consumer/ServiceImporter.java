@@ -32,6 +32,7 @@ import java.util.concurrent.TimeUnit;
 import org.eclipse.ecf.core.IContainerManager;
 import org.eclipse.ecf.osgi.services.remoteserviceadmin.EndpointDescription;
 import org.eclipse.ecf.provider.tcpsocket.common.TCPSocketConstants;
+import org.eclipse.ecf.provider.tcpsocket.examples.service.api.IHello;
 import org.eclipse.ecf.remoteservice.Constants;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.FrameworkUtil;
@@ -45,8 +46,6 @@ import org.osgi.service.remoteserviceadmin.ImportRegistration;
 import org.osgi.service.remoteserviceadmin.RemoteServiceAdmin;
 import org.osgi.service.remoteserviceadmin.RemoteServiceAdminEvent;
 import org.osgi.service.remoteserviceadmin.RemoteServiceAdminListener;
-
-import org.eclipse.ecf.provider.tcpsocket.examples.service.api.IHello;
 
 @Component(immediate = true)
 public class ServiceImporter {
